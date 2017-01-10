@@ -7,7 +7,7 @@ import battlecode.common.RobotType;
 
 public class Gardener extends Base {
     public static void run() throws GameActionException {
-        System.out.println("Gardener created");
+        System.out.println("Gardener spawned");
 
         while (true) {
            try {
