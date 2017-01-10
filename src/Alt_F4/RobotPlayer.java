@@ -18,6 +18,7 @@ public strictfp class RobotPlayer {
                     Lumberjack.run();
                     break;
                 case SCOUT:
+                    Scout.run();
                     break;
                 case SOLDIER:
                     break;
