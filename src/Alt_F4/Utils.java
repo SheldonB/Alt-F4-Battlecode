@@ -1,13 +1,14 @@
 package Alt_F4;
 
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 
 public class Utils extends Base {
-    public static void TurnInBullets() throws GameActionException {
-        if (1000 - rc.getTeamVictoryPoints() <= rc.getTeamBullets() / 10) {
+    public static boolean CheckWinConditions() throws GameActionException {
+        if (rc.getTeamBullets() >= GameConstants.VICTORY_POINTS_TO_WIN * GameConstants.BULLET_EXCHANGE_RATE) {
             rc.donate(rc.getTeamBullets());
-        } else if (rc.getTeamBullets() > 200) {
-            rc.donate(rc.getTeamBullets() - 100);
+            return true;
         }
+        return false;
     }
 }
