@@ -5,20 +5,46 @@ import battlecode.common.*;
 public class Gardener extends Base {
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
+        boolean foundBuildLocation = false;
 
         while (true) {
            try {
-               //Pathing.tryMove(Pathing.randomDirection());
-               //tryBuildLumberJack();
-               //tryBuildTree(Pathing.randomDirection());
-               //tryShakeTrees();
-               tryBuildHexagon();
-               tryShakeWaterHexagon();
+               Utils.CheckWinConditions();
+
+               if (!foundBuildLocation) {
+                   System.out.println("Trying to find better place to build");
+
+                   if (isValidFullTreeCircle()) {
+                       foundBuildLocation = true;
+                   } else {
+                       Pathing.tryMove(Pathing.randomDirection());
+                   }
+               } else {
+                   tryBuildHexagon();
+                   tryWaterNearbyTrees();
+               }
+
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
            }
         }
+    }
+
+    public static boolean isValidFullTreeCircle() throws GameActionException {
+        Direction buildDirection = Direction.getEast();
+        int treesToTry = 6;
+        int offset = 60;
+
+        int treesTried = 0;
+
+        while (treesTried <= treesToTry) {
+            if (!rc.canPlantTree(buildDirection.rotateRightDegrees(treesTried * offset))) {
+                return false;
+            }
+            treesTried++;
+        }
+        return true;
     }
 
     public static void tryBuildHexagon() throws GameActionException {
@@ -31,19 +57,17 @@ public class Gardener extends Base {
         while (treesTried <= treesToTry) {
             if (rc.canPlantTree(buildDirection.rotateRightDegrees(treesTried * offset))) {
                 rc.plantTree(buildDirection.rotateRightDegrees(treesTried * offset));
+                System.out.println("Gardener is planting new tree.");
             }
             treesTried++;
         }
     }
 
-    public static void tryShakeWaterHexagon() throws GameActionException {
+    public static void tryWaterNearbyTrees() throws GameActionException {
         TreeInfo[] sensedTrees = rc.senseNearbyTrees();
 
         for (TreeInfo tree : sensedTrees) {
-            if (rc.canShake(tree.getID())) {
-                rc.shake(tree.getID());
-            }
-            if(rc.canWater(tree.getID()) && tree.getHealth() <= 15) {
+            if(rc.canWater(tree.getID()) && tree.getHealth() <= 25) {
                 rc.water(tree.getID());
             }
         }
