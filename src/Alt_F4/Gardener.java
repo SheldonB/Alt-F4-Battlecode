@@ -21,9 +21,13 @@ public class Gardener extends Base {
            try {
                Utils.CheckWinConditions();
 
-               hexagonBuild();
+               if (rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length > 0) {
+                    tryBuildScout();
+               } else {
+                   hexagonBuild();
+               }
 
-               if (rc.readBroadcast(0) >= (numberOfArchons * 6)) {
+               if (rc.readBroadcast(0) >= (numberOfArchons * 6) && !scoutBuilt) {
                    scoutBuilt = tryBuildScout();
                }
 
@@ -75,6 +79,15 @@ public class Gardener extends Base {
     public static boolean tryBuildScout() throws GameActionException {
         if (rc.canBuildRobot(RobotType.SCOUT, Direction.getEast())) {
             rc.buildRobot(RobotType.SCOUT, Direction.getEast());
+            return true;
+        } else if (rc.canBuildRobot(RobotType.SCOUT, Direction.getWest())) {
+            rc.buildRobot(RobotType.SCOUT, Direction.getWest());
+            return true;
+        }else if (rc.canBuildRobot(RobotType.SCOUT, Direction.getNorth())) {
+            rc.buildRobot(RobotType.SCOUT, Direction.getNorth());
+            return true;
+        }else if (rc.canBuildRobot(RobotType.SCOUT, Direction.getSouth())) {
+            rc.buildRobot(RobotType.SCOUT, Direction.getSouth());
             return true;
         }
         return false;
