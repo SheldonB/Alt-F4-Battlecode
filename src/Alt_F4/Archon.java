@@ -14,7 +14,7 @@ public class Archon extends Base {
         while (true) {
             try {
                 spawnGardener();
-                Pathing.tryMove(Pathing.randomDirection());
+                //Pathing.tryMove(Pathing.randomDirection());
                 Utils.CheckWinConditions();
                 Clock.yield();
             } catch (Exception e) {
@@ -24,8 +24,10 @@ public class Archon extends Base {
     }
 
     public static void spawnGardener() throws GameActionException {
-        if (rc.canHireGardener(Direction.getNorth()) && spawnedUnitCount < 6) {
-            rc.hireGardener(Direction.getNorth());
+        Direction buildDirection = Direction.getNorth();
+        buildDirection = buildDirection.rotateRightDegrees(60 * spawnedUnitCount);
+        if (rc.canHireGardener(buildDirection) && spawnedUnitCount < 7) {
+            rc.hireGardener(buildDirection);
             spawnedUnitCount++;
         }
     }
