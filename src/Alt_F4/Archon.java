@@ -29,6 +29,13 @@ public class Archon extends Base {
             rc.broadcast(0, rc.readBroadcast(0) + 1);
             rc.hireGardener(buildDirection);
             spawnedUnitCount++;
+        } else if (spawnedUnitCount < 7 && !rc.canHireGardener(buildDirection)) {
+            Direction dir = Pathing.randomDirection();
+            if (rc.canHireGardener(dir)) {
+                rc.hireGardener(dir);
+                spawnedUnitCount++;
+            }
+
         }
     }
 }
