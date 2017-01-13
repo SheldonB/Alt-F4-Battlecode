@@ -3,7 +3,6 @@ package Alt_F4;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
 
 public class Archon extends Base {
     private static int spawnedUnitCount = 0 ;
@@ -27,6 +26,7 @@ public class Archon extends Base {
         Direction buildDirection = Direction.getNorth();
         buildDirection = buildDirection.rotateRightDegrees(60 * spawnedUnitCount);
         if (rc.canHireGardener(buildDirection) && spawnedUnitCount < 7) {
+            rc.broadcast(0, rc.readBroadcast(0) + 1);
             rc.hireGardener(buildDirection);
             spawnedUnitCount++;
         }

@@ -3,8 +3,16 @@ package Alt_F4;
 import battlecode.common.*;
 
 public class Gardener extends Base {
+    enum GARD_ROLE {
+        FARMER,
+        BUILDER
+    }
+
     private static boolean foundBuildLocation = false;
     private static boolean movingAway = true;
+    private static boolean scoutBuilt = false;
+
+    private static GARD_ROLE role;
 
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -14,6 +22,10 @@ public class Gardener extends Base {
                Utils.CheckWinConditions();
 
                hexagonBuild();
+
+               if (rc.readBroadcast(0) >= (numberOfArchons * 6)) {
+                   scoutBuilt = tryBuildScout();
+               }
 
                Clock.yield();
            } catch (Exception e) {
