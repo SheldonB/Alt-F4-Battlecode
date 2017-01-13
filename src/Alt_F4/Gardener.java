@@ -3,46 +3,17 @@ package Alt_F4;
 import battlecode.common.*;
 
 public class Gardener extends Base {
+    private static boolean foundBuildLocation = false;
+    private static boolean movingAway = true;
+
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
-        boolean foundBuildLocation = false;
-        boolean movingAway = true;
-        //boolean hexagon = false;
-
-        //if (rc.getRobotCount() <= 14)
-            //hexagon = true;
 
         while (true) {
            try {
                Utils.CheckWinConditions();
-               //if (hexagon) {
-                   if (!foundBuildLocation) {
-                       System.out.println("Trying to find better place to build");
 
-                       if (isValidFullTreeCircle()) {
-                           foundBuildLocation = true;
-                       } else {
-                           if (movingAway) {
-                               MapLocation closestArchon = archonLocations[0];
-
-                               for (MapLocation location : archonLocations) {
-                                   if (rc.getLocation().distanceTo(location) < rc.getLocation().distanceTo(closestArchon)) {
-                                       closestArchon = location;
-                                   }
-                               }
-
-                               Pathing.tryMove(rc.getLocation().directionTo(closestArchon).rotateRightDegrees(180));
-                           } else {
-                               Pathing.tryMove(Pathing.randomDirection());
-                           }
-                       }
-                   } else {
-                       tryBuildHexagon();
-                       tryWaterNearbyTrees();
-                   }
-               //} else {
-                   //tryBuildScout();
-               //}
+               hexagonBuild();
 
                Clock.yield();
            } catch (Exception e) {
@@ -98,6 +69,29 @@ public class Gardener extends Base {
     }
 
     public static void hexagonBuild() throws GameActionException {
+        if (!foundBuildLocation) {
+            System.out.println("Trying to find better place to build");
 
+            if (isValidFullTreeCircle()) {
+                foundBuildLocation = true;
+            } else {
+                if (movingAway) {
+                    MapLocation closestArchon = archonLocations[0];
+
+                    for (MapLocation location : archonLocations) {
+                        if (rc.getLocation().distanceTo(location) < rc.getLocation().distanceTo(closestArchon)) {
+                            closestArchon = location;
+                        }
+                    }
+
+                    Pathing.tryMove(rc.getLocation().directionTo(closestArchon).rotateRightDegrees(180));
+                } else {
+                    Pathing.tryMove(Pathing.randomDirection());
+                }
+            }
+        } else {
+            tryBuildHexagon();
+            tryWaterNearbyTrees();
+        }
     }
 }
