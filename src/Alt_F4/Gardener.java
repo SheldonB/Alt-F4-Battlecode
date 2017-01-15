@@ -2,17 +2,14 @@ package Alt_F4;
 
 import battlecode.common.*;
 
-public class Gardener extends Base {
-    enum GARD_ROLE {
-        FARMER,
-        BUILDER
-    }
+import java.util.Arrays;
 
-    private static boolean foundBuildLocation = false;
+public class Gardener extends Base {
+
     private static boolean movingAway = true;
     private static boolean scoutBuilt = false;
-
-    private static GARD_ROLE role;
+    private static boolean hexagonBuilt = false;
+    private static boolean foundBuildLocation = false;
 
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -22,20 +19,30 @@ public class Gardener extends Base {
                Utils.CheckWinConditions();
 
                if (rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length > 0) {
-                    tryBuildScout();
-               } else {
+                    scoutBuilt = tryBuildScout();
+               } else { //if (!hexagonBuilt) {
                    hexagonBuild();
-               }
+                   //hexagonBuilt = checkHexagonComplete();
+               } //else {
+                 //  tryWaterNearbyTrees();
+               //}
 
-               if (rc.readBroadcast(0) >= (numberOfArchons * 6) && !scoutBuilt) {
-                   scoutBuilt = tryBuildScout();
-               }
+               //if (rc.readBroadcast(0) >= (numberOfArchons * 6) && !scoutBuilt) {
+               //    scoutBuilt = tryBuildScout();
+               //}
 
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
            }
         }
+    }
+
+    public static boolean checkHexagonComplete() throws GameActionException {
+        if (rc.senseNearbyTrees().length >= 6) {
+            return true;
+        }
+        return false;
     }
 
     public static boolean isValidFullTreeCircle() throws GameActionException {
@@ -53,6 +60,7 @@ public class Gardener extends Base {
             if (rc.canPlantTree(buildDirection.rotateRightDegrees(treesTried * offset))) {
                 rc.plantTree(buildDirection.rotateRightDegrees(treesTried * offset));
                 System.out.println("Gardener is planting new tree.");
+                break;
             }
             treesTried++;
         }
@@ -60,10 +68,12 @@ public class Gardener extends Base {
 
     public static void tryWaterNearbyTrees() throws GameActionException {
         TreeInfo[] sensedTrees = rc.senseNearbyTrees();
+        Arrays.sort(sensedTrees, (o1, o2) -> Float.compare(o1.getHealth(), o2.getHealth()));
 
         for (TreeInfo tree : sensedTrees) {
-            if (rc.canWater(tree.getID()) && tree.getHealth() <= 25) {
+            if (rc.canWater(tree.getID()) && tree.getHealth() <= GameConstants.BULLET_TREE_MAX_HEALTH - GameConstants.BULLET_TREE_DECAY_RATE) {
                 rc.water(tree.getID());
+                break;
             }
         }
     }
