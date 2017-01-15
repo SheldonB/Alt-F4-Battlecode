@@ -7,42 +7,24 @@ import java.util.Arrays;
 public class Gardener extends Base {
 
     private static boolean movingAway = true;
-    private static boolean scoutBuilt = false;
-    private static boolean hexagonBuilt = false;
     private static boolean foundBuildLocation = false;
 
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
-
         while (true) {
            try {
                Utils.CheckWinConditions();
 
                if (rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length > 0) {
-                    scoutBuilt = tryBuildScout();
-               } else { //if (!hexagonBuilt) {
+                   tryBuildScout();
+               } else {
                    hexagonBuild();
-                   //hexagonBuilt = checkHexagonComplete();
-               } //else {
-                 //  tryWaterNearbyTrees();
-               //}
-
-               //if (rc.readBroadcast(0) >= (numberOfArchons * 6) && !scoutBuilt) {
-               //    scoutBuilt = tryBuildScout();
-               //}
-
+               }
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
            }
         }
-    }
-
-    public static boolean checkHexagonComplete() throws GameActionException {
-        if (rc.senseNearbyTrees().length >= 6) {
-            return true;
-        }
-        return false;
     }
 
     public static boolean isValidFullTreeCircle() throws GameActionException {
