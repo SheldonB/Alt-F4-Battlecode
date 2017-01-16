@@ -8,10 +8,14 @@ public class Message {
     will also be used for specific a specific purpose.
      */
     public static final int STRATEGY_CHANNEL = 0;
-    public static final int GARDENER_COUNT_CHANNEL = 1;
 
     public static final int ARCHON_VOTING_START_CHANNEL = 1;
     public static final int ARCHON_VOTING_END_CHANNEL = 4;
+
+    public static final int GARDENER_COUNT_CHANNEL = 5;
+
+    public static final int SCOUT_COUNT_CHANNEL = 6;
+    public static final int SCOUT_ATTACK_COORD_CHANNEL = 7;
 
     /*
     Define message constants that are to be passed into
