@@ -6,25 +6,43 @@ import java.util.Arrays;
 
 public class Gardener extends Base {
 
-    private static boolean movingAway = true;
+    private enum Role {
+        FARMER,
+        BUILDER
+    }
+
+    private static Role unitRole;
     private static boolean foundBuildLocation = false;
 
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
+        unitRole = determineRole();
+
         while (true) {
            try {
                Utils.CheckWinConditions();
 
-               if (rc.senseNearbyRobots(-1, rc.getTeam().opponent()).length > 0) {
+               if (unitRole == Role.BUILDER) {
                    tryBuildScout();
-               } else {
+               } else if (unitRole == Role.FARMER) {
                    hexagonBuild();
                }
+
+
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
            }
         }
+    }
+
+    private static Role determineRole() throws GameActionException {
+        if (rc.readBroadcast(Message.STRATEGY_CHANNEL) == Message.SCOUT_RUSH_MESSAGE) {
+            System.out.println("Gardener set to builder role");
+            return Role.BUILDER;
+        }
+        System.out.println("Gardener set to farmer role");
+        return Role.FARMER;
     }
 
     public static boolean isValidFullTreeCircle() throws GameActionException {
@@ -69,19 +87,19 @@ public class Gardener extends Base {
     }
 
     public static boolean tryBuildScout() throws GameActionException {
-        if (rc.canBuildRobot(RobotType.SCOUT, Direction.getEast())) {
-            rc.buildRobot(RobotType.SCOUT, Direction.getEast());
-            return true;
-        } else if (rc.canBuildRobot(RobotType.SCOUT, Direction.getWest())) {
-            rc.buildRobot(RobotType.SCOUT, Direction.getWest());
-            return true;
-        }else if (rc.canBuildRobot(RobotType.SCOUT, Direction.getNorth())) {
-            rc.buildRobot(RobotType.SCOUT, Direction.getNorth());
-            return true;
-        }else if (rc.canBuildRobot(RobotType.SCOUT, Direction.getSouth())) {
-            rc.buildRobot(RobotType.SCOUT, Direction.getSouth());
-            return true;
+        int angle = 0;
+        int offset = 90;
+        Direction dir = Direction.getEast();
+
+        while (angle <= 360) {
+            if (rc.canBuildRobot(RobotType.SCOUT, dir.rotateRightDegrees(angle))) {
+                rc.buildRobot(RobotType.SCOUT, dir.rotateRightDegrees(angle));
+                rc.broadcast(Message.SCOUT_COUNT_CHANNEL, rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) + 1);
+                return true;
+            }
+            angle += offset;
         }
+
         return false;
     }
 
@@ -92,6 +110,7 @@ public class Gardener extends Base {
             if (isValidFullTreeCircle()) {
                 foundBuildLocation = true;
             } else {
+                boolean movingAway = true;
                 if (movingAway) {
                     MapLocation closestArchon = archonLocations[0];
 
