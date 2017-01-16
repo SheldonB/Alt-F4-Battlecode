@@ -80,9 +80,11 @@ public class Archon extends Base {
 
         if (aggregate != numberOfArchons) {
             rc.broadcast(Message.STRATEGY_CHANNEL, Message.SCOUT_RUSH_MESSAGE);
+            System.out.println("Archons decided to scout rush");
             return;
         }
 
+        System.out.println("Archons decided to turtle");
         rc.broadcast(Message.STRATEGY_CHANNEL, Message.TURTLE_MESSAGE);
     }
 
