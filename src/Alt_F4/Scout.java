@@ -4,30 +4,17 @@ import battlecode.common.*;
 
 public class Scout extends Base {
     private static MapLocation targetLocation;
+    private static boolean wandering = false;
 
     public static void run() throws GameActionException {
         while (true) {
             try {
-                if (rc.readBroadcast(Message.SCOUT_ATTACK_COORD_CHANNEL) == 0) {
-                    targetLocation = determineRushLocation();
-                    rc.broadcast(Message.SCOUT_ATTACK_COORD_CHANNEL, Utils.mapLocationToInt(targetLocation));
+                if (!wandering) {
+                    coordinateAttack();
+                } else {
+                    wander();
                 }
 
-                if (targetLocation == null) {
-                    targetLocation = Utils.mapLocationFromInt(rc.readBroadcast(Message.SCOUT_ATTACK_COORD_CHANNEL));
-                }
-
-                if (targetLocation != null) {
-                    rc.setIndicatorLine(rc.getLocation(), targetLocation, 255, 0, 0);
-                }
-
-                if (rc.getLocation().distanceTo(targetLocation) > GameConstants.BULLET_SPAWN_OFFSET) {
-                    Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
-                }
-
-                collectBullets();
-                targetLocation = determinePriorityTarget();
-                tryFireOnTarget(targetLocation);
                 Clock.yield();
             } catch (Exception e) {
                System.out.println(e.getMessage());
@@ -35,17 +22,70 @@ public class Scout extends Base {
         }
     }
 
-    static void tryFireOnTarget(MapLocation loc) throws GameActionException {
-        if (rc.canFireSingleShot()) {
-            rc.fireSingleShot(rc.getLocation().directionTo(targetLocation));
+    static void coordinateAttack() throws GameActionException {
+        if (rc.readBroadcast(Message.SCOUT_ATTACK_COORD_CHANNEL) == 0) {
+            targetLocation = determineRushLocation();
+            rc.broadcast(Message.SCOUT_ATTACK_COORD_CHANNEL, Utils.mapLocationToInt(targetLocation));
         }
+
+        if (targetLocation == null) {
+            targetLocation = updateTargetLocation();
+
+            if (targetLocation == null) {
+                wandering = true;
+            }
+        } else {
+            rc.setIndicatorLine(rc.getLocation(), targetLocation, 0, 255, 0);
+        }
+
+        if (rc.getLocation().distanceTo(targetLocation) > GameConstants.BULLET_SPAWN_OFFSET) {
+            Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
+        }
+
+        collectBullets();
+        targetLocation = determinePriorityTarget();
+        tryFireOnTarget(targetLocation);
+    }
+
+    static void tryFireOnTarget(MapLocation loc) throws GameActionException {
+        if (rc.senseNearbyRobots(loc, rc.getType().sensorRadius, rc.getTeam().opponent()).length != 0) {
+            if (rc.canFireSingleShot()) {
+                rc.fireSingleShot(rc.getLocation().directionTo(targetLocation));
+            }
+        } else {
+            targetLocation = null;
+        }
+    }
+
+    static MapLocation updateTargetLocation() throws GameActionException {
+        MapLocation broadcastLocation = Utils.mapLocationFromInt(rc.readBroadcast(Message.SCOUT_ATTACK_COORD_CHANNEL));
+        if (rc.getLocation().distanceTo(broadcastLocation) > rc.getType().strideRadius) {
+            return broadcastLocation;
+        }
+
+        RobotInfo[] newTargets = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
+        if (newTargets.length != 0) {
+            return newTargets[0].getLocation();
+        }
+
+        return null;
     }
 
     static MapLocation determinePriorityTarget() throws GameActionException {
         RobotInfo[] sensedRobots = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
 
         for (RobotInfo robot : sensedRobots) {
-            if (robot.getType() == RobotType.ARCHON) {
+            if (robot.getType() == RobotType.GARDENER) {
+                return robot.getLocation();
+            } else if (robot.getType() == RobotType.SCOUT) {
+                return robot.getLocation();
+            } else if (robot.getType() == RobotType.SOLDIER) {
+                return robot.getLocation();
+            } else if (robot.getType() == RobotType.LUMBERJACK) {
+                return robot.getLocation();
+            } else if (robot.getType() == RobotType.ARCHON) {
+                return robot.getLocation();
+            } else if (robot.getType() == RobotType.TANK) {
                 return robot.getLocation();
             }
         }
@@ -74,22 +114,13 @@ public class Scout extends Base {
         }
     }
 
-    static void wander() {
-        Direction dir = enemyArchonLocations[0].directionTo(rc.getLocation());
-        rc.setIndicatorLine(rc.getLocation(), enemyArchonLocations[0], 255, 0, 0);
-    }
+    static void wander() throws GameActionException {
+        Pathing.tryMove(Pathing.randomDirection());
 
-    static void harassClosestEnemy() throws GameActionException {
-        RobotInfo enemies[] = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        if (enemies.length > 0) {
-            RobotInfo closestEnemy = enemies[0];
-            for (RobotInfo enemy : enemies) {
-                if (rc.getLocation().distanceTo(enemy.getLocation()) < rc.getLocation().distanceTo(closestEnemy.getLocation())) {
-                    closestEnemy = enemy;
-                }
-            }
-            Pathing.tryMove(rc.getLocation().directionTo(closestEnemy.getLocation()));
-            rc.fireSingleShot(rc.getLocation().directionTo(closestEnemy.getLocation()));
+        RobotInfo[] targets = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
+        if (targets.length > 0) {
+            targetLocation = targets[0].getLocation();
+            wandering = false;
         }
     }
 }
