@@ -17,7 +17,11 @@ public class Pathing extends Base {
      * @throws GameActionException
      */
     static boolean tryMove(Direction dir) throws GameActionException {
-        return tryMove(dir,20,3);
+        return tryMove(dir,20,3, rc.getType().strideRadius);
+    }
+
+    static boolean tryMove(Direction dir, float distance) throws GameActionException {
+        return tryMove(dir,20,3, distance);
     }
 
     /**
@@ -29,27 +33,26 @@ public class Pathing extends Base {
      * @return true if a move was performed
      * @throws GameActionException
      */
-    static boolean tryMove(Direction dir, float degreeOffset, int checksPerSide) throws GameActionException {
+    static boolean tryMove(Direction dir, float degreeOffset, int checksPerSide, float distance) throws GameActionException {
 
         // First, try intended direction
         if (rc.canMove(dir)) {
-            rc.move(dir);
+            rc.move(dir, distance);
             return true;
         }
 
         // Now try a bunch of similar angles
-        boolean moved = false;
         int currentCheck = 1;
 
-        while(currentCheck<=checksPerSide) {
+        while(currentCheck <= checksPerSide) {
             // Try the offset of the left side
             if(rc.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck));
+                rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck), distance);
                 return true;
             }
             // Try the offset on the right side
             if(rc.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck));
+                rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck), distance);
                 return true;
             }
             // No move performed, try slightly further
