@@ -15,6 +15,7 @@ public class Scout extends Base {
                     wander();
                 }
 
+                collectBullets();
                 Clock.yield();
             } catch (Exception e) {
                System.out.println(e.getMessage());
@@ -42,7 +43,6 @@ public class Scout extends Base {
             Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
         }
 
-        collectBullets();
         targetLocation = determinePriorityTarget();
         tryFireOnTarget(targetLocation);
     }
