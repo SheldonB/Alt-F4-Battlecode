@@ -92,17 +92,9 @@ public class Archon extends Base {
         Direction buildDirection = Direction.getNorth();
         buildDirection = buildDirection.rotateRightDegrees(60 * spawnedUnitCount);
 
-        if (rc.canHireGardener(buildDirection) && spawnedUnitCount < GARDENERS_TO_SPAWN) {
-            rc.broadcast(Message.GARDENER_COUNT_CHANNEL, rc.readBroadcast(0) + 1);
-            rc.hireGardener(buildDirection);
+        if (spawnedUnitCount < GARDENERS_TO_SPAWN && Base.trySpawnUnit(buildDirection, RobotType.GARDENER)) {
+            rc.broadcast(Message.GARDENER_COUNT_CHANNEL, rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL));
             spawnedUnitCount++;
-        } else if (spawnedUnitCount < GARDENERS_TO_SPAWN && !rc.canHireGardener(buildDirection)) {
-            Direction dir = Pathing.randomDirection();
-            if (rc.canHireGardener(dir)) {
-                rc.hireGardener(dir);
-                spawnedUnitCount++;
-            }
-
         }
     }
 }
