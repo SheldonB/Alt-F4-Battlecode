@@ -11,6 +11,7 @@ public class Gardener extends Base {
         BUILDER
     }
 
+    private static int builtTreeCount;
     private static Role unitRole;
     private static boolean foundBuildLocation = false;
 
@@ -59,6 +60,7 @@ public class Gardener extends Base {
         while (treesTried < treesToTry) {
             if (rc.canPlantTree(buildDirection.rotateRightDegrees(treesTried * offset))) {
                 rc.plantTree(buildDirection.rotateRightDegrees(treesTried * offset));
+                builtTreeCount++;
                 System.out.println("Gardener is planting new tree.");
                 break;
             }
