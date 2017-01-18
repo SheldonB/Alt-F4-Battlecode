@@ -52,20 +52,41 @@ public class Scout extends Base {
                 targetLocation = target.getLocation();
                 targetID = target.getID();
             } else {
-                //targetLocation = null;
                 targetLocation = lastKnownEnemyArchonLocation;
+
+                RobotInfo[] potentialTargets = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
+                if (potentialTargets.length == 0) {
+                    targetLocation = null;
+                }
             }
         }
 
         if (targetLocation == null) {
             wander();
         } else {
-            if (rc.getLocation().distanceTo(targetLocation) > GameConstants.LUMBERJACK_STRIKE_RADIUS * 2) {
-                Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
+            if (!tryHideInNearbyTree()) {
+                if (rc.getLocation().distanceTo(targetLocation) > GameConstants.LUMBERJACK_STRIKE_RADIUS * 2) {
+                    Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
+                }
             }
         }
         tryAttackTargetUnit();
 
+    }
+
+    static boolean tryHideInNearbyTree() throws GameActionException {
+        TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
+        for (TreeInfo tree : nearbyTrees) {
+            Direction treeToEnemy = tree.getLocation().directionTo(targetLocation);
+            MapLocation offsetLocation = tree.getLocation().add(treeToEnemy, tree.getRadius());
+
+            if (rc.canMove(offsetLocation)) {
+                rc.move(offsetLocation);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     static boolean willCollideWithMe(BulletInfo bullet) {
