@@ -3,15 +3,25 @@ package Alt_F4;
 import battlecode.common.*;
 
 public class Base {
-    public static int robotID;
-    public static int numberOfArchons;
-    public static int numberOfEnemyArchons;
-    public static MapLocation[] archonLocations;
-    public static MapLocation[] enemyArchonLocations;
+    static int robotID;
+    static int numberOfArchons;
+    static int numberOfEnemyArchons;
+
+    static MapLocation[] archonLocations;
+    static MapLocation[] enemyArchonLocations;
+
+    static RobotInfo[] visibleFriendlyUnits;
+    static RobotInfo[] visibleEnemyUnits;
+
+    static TreeInfo[] visibleNeutralTrees;
+    static TreeInfo[] visibleFriendlyTrees;
+    static TreeInfo[] visibleEnemyTrees;
+
+    static BulletInfo[] nearbyBullets;
 
     protected static RobotController rc;
 
-    public static void init(RobotController rc)
+    static void init(RobotController rc)
     {
         Base.rc = rc;
         robotID = rc.getID();
@@ -22,11 +32,22 @@ public class Base {
         numberOfEnemyArchons = enemyArchonLocations.length;
     }
 
-    protected static boolean trySpawnUnit(Direction dir, RobotType type) throws GameActionException {
+    static void update() {
+        visibleFriendlyUnits = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam());
+        visibleEnemyUnits = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
+
+        visibleNeutralTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL);
+        visibleFriendlyTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam());
+        visibleEnemyTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam().opponent());
+
+        nearbyBullets = rc.senseNearbyBullets();
+    }
+
+    static boolean trySpawnUnit(Direction dir, RobotType type) throws GameActionException {
         return trySpawnUnit(dir, type, 20, 9);
     }
 
-    protected static boolean trySpawnUnit(Direction dir, RobotType type, int offset, int checksPerSide) throws GameActionException {
+    static boolean trySpawnUnit(Direction dir, RobotType type, int offset, int checksPerSide) throws GameActionException {
         if (rc.canBuildRobot(type, dir)) {
             rc.buildRobot(type, dir);
             return true;
