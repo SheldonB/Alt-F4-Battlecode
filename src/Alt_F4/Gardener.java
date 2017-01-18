@@ -15,7 +15,6 @@ public class Gardener extends Base {
     private static Role unitRole;
     private static boolean foundBuildLocation = false;
     private static boolean buildScout = true;
-    private static boolean movingAway = true;
 
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -44,15 +43,6 @@ public class Gardener extends Base {
             if (isValidScoutRushCircle()) {
                 foundBuildLocation = true;
             } else {
-                //MapLocation closestArchon = archonLocations[0];
-
-                //for (MapLocation location : archonLocations) {
-                //    if (rc.getLocation().distanceTo(location) < rc.getLocation().distanceTo(closestArchon)) {
-                //      closestArchon = location;
-                //    }
-                //}
-
-                //Pathing.tryMove(rc.getLocation().directionTo(closestArchon).rotateRightDegrees(180));
                 Pathing.tryMove(Pathing.randomDirection());
             }
         } else {
