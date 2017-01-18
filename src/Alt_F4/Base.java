@@ -43,6 +43,14 @@ public class Base {
         nearbyBullets = rc.senseNearbyBullets();
     }
 
+    static void tryUpdateEnemyArchonLocation() {
+        for (RobotInfo robot : visibleEnemyUnits) {
+            if (robot.getType() == RobotType.ARCHON) {
+
+            }
+        }
+    }
+
     static boolean trySpawnUnit(Direction dir, RobotType type) throws GameActionException {
         return trySpawnUnit(dir, type, 20, 9);
     }
