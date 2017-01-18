@@ -16,6 +16,7 @@ public class Message {
 
     public static final int SCOUT_COUNT_CHANNEL = 6;
     public static final int SCOUT_ATTACK_COORD_CHANNEL = 7;
+    public static final int SCOUT_ATTACK_TARGET_ID_CHANNEL = 8;
 
     /*
     Define message constants that are to be passed into

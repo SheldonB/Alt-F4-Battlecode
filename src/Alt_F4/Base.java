@@ -36,12 +36,12 @@ public class Base {
 
         while (currentCheck <= checksPerSide) {
             if (rc.canBuildRobot(type, dir.rotateLeftDegrees(currentCheck*offset))) {
-                rc.buildRobot(type, dir);
+                rc.buildRobot(type, dir.rotateLeftDegrees(currentCheck*offset));
                 return true;
             }
 
             if (rc.canBuildRobot(type, dir.rotateRightDegrees(currentCheck*offset))) {
-                rc.buildRobot(type, dir);
+                rc.buildRobot(type, dir.rotateRightDegrees(currentCheck*offset));
                 return true;
             }
 
