@@ -14,6 +14,8 @@ public class Gardener extends Base {
     private static int builtTreeCount;
     private static Role unitRole;
     private static boolean foundBuildLocation = false;
+    private static boolean buildScout = true;
+    private static boolean movingAway = true;
 
     public static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -24,7 +26,7 @@ public class Gardener extends Base {
                Utils.CheckWinConditions();
 
                if (unitRole == Role.BUILDER) {
-                   tryBuildScout();
+                   scoutRush();
                } else if (unitRole == Role.FARMER) {
                    hexagonBuild();
                }
@@ -35,6 +37,55 @@ public class Gardener extends Base {
                System.out.println(e.getMessage());
            }
         }
+    }
+
+    private static void scoutRush() throws GameActionException {
+        if (!foundBuildLocation) {
+            if (isValidScoutRushCircle()) {
+                foundBuildLocation = true;
+            } else {
+                //MapLocation closestArchon = archonLocations[0];
+
+                //for (MapLocation location : archonLocations) {
+                //    if (rc.getLocation().distanceTo(location) < rc.getLocation().distanceTo(closestArchon)) {
+                //      closestArchon = location;
+                //    }
+                //}
+
+                //Pathing.tryMove(rc.getLocation().directionTo(closestArchon).rotateRightDegrees(180));
+                Pathing.tryMove(Pathing.randomDirection());
+            }
+        } else {
+            if (buildScout) {
+                tryBuildScout();
+                buildScout = false;
+            } else {
+                tryBuildPentagon();
+                buildScout = true;
+            }
+
+            tryWaterNearbyTrees();
+        }
+    }
+
+    private static boolean isValidScoutRushCircle() throws GameActionException {
+        Direction dir = Direction.getEast();
+        int offset = 30;
+        int angle = 0;
+        int canBuild = 0;
+
+        while (angle < 360) {
+            if (rc.canBuildRobot(RobotType.SCOUT, dir.rotateRightDegrees(angle))) {
+                canBuild++;
+            }
+
+            angle += offset;
+        }
+
+        if (canBuild >= 3) {
+            return true;
+        }
+        return false;
     }
 
     private static Role determineRole() throws GameActionException {
@@ -53,6 +104,24 @@ public class Gardener extends Base {
     public static void tryBuildHexagon() throws GameActionException {
         Direction buildDirection = Direction.getEast();
         int treesToTry = 6;
+        int offset = 60;
+
+        int treesTried = 0;
+
+        while (treesTried < treesToTry) {
+            if (rc.canPlantTree(buildDirection.rotateRightDegrees(treesTried * offset))) {
+                rc.plantTree(buildDirection.rotateRightDegrees(treesTried * offset));
+                builtTreeCount++;
+                System.out.println("Gardener is planting new tree.");
+                break;
+            }
+            treesTried++;
+        }
+    }
+
+    public static void tryBuildPentagon() throws GameActionException {
+        Direction buildDirection = Direction.getEast();
+        int treesToTry = 5;
         int offset = 60;
 
         int treesTried = 0;
@@ -90,7 +159,7 @@ public class Gardener extends Base {
 
     public static boolean tryBuildScout() throws GameActionException {
         int angle = 0;
-        int offset = 90;
+        int offset = 30;
         Direction dir = Direction.getEast();
 
         while (angle <= 360) {
@@ -112,20 +181,15 @@ public class Gardener extends Base {
             if (isValidFullTreeCircle()) {
                 foundBuildLocation = true;
             } else {
-                boolean movingAway = true;
-                if (movingAway) {
-                    MapLocation closestArchon = archonLocations[0];
+                MapLocation closestArchon = archonLocations[0];
 
-                    for (MapLocation location : archonLocations) {
-                        if (rc.getLocation().distanceTo(location) < rc.getLocation().distanceTo(closestArchon)) {
-                            closestArchon = location;
-                        }
+                for (MapLocation location : archonLocations) {
+                    if (rc.getLocation().distanceTo(location) < rc.getLocation().distanceTo(closestArchon)) {
+                        closestArchon = location;
                     }
-
-                    Pathing.tryMove(rc.getLocation().directionTo(closestArchon).rotateRightDegrees(180));
-                } else {
-                    Pathing.tryMove(Pathing.randomDirection());
                 }
+
+                Pathing.tryMove(rc.getLocation().directionTo(closestArchon).rotateRightDegrees(180));
             }
         } else {
             tryBuildHexagon();
