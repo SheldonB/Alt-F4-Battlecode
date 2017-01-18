@@ -34,7 +34,7 @@ public class Base {
         numberOfEnemyArchons = enemyArchonLocations.length;
     }
 
-    static void update() {
+    static void update() throws GameActionException {
         visibleFriendlyUnits = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam());
         visibleEnemyUnits = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
 
@@ -47,13 +47,17 @@ public class Base {
         tryUpdateEnemyArchonLocation();
     }
 
-    static void tryUpdateEnemyArchonLocation() {
+    static void tryUpdateEnemyArchonLocation() throws GameActionException {
+        lastKnownEnemyArchonLocation = Utils.mapLocationFromInt(rc.readBroadcast(Message.LAST_KNOW_ENEMY_ARCHON_CHANNEL));
+
         for (RobotInfo robot : visibleEnemyUnits) {
             if (robot.getType() == RobotType.ARCHON) {
                 lastKnownEnemyArchonLocation = robot.getLocation();
                 break;
             }
         }
+
+        rc.broadcast(Message.LAST_KNOW_ENEMY_ARCHON_CHANNEL, Utils.mapLocationToInt(lastKnownEnemyArchonLocation));
     }
 
     static boolean trySpawnUnit(Direction dir, RobotType type) throws GameActionException {

@@ -18,6 +18,8 @@ public class Message {
     public static final int SCOUT_ATTACK_COORD_CHANNEL = 7;
     public static final int SCOUT_ATTACK_TARGET_ID_CHANNEL = 8;
 
+    public static final int LAST_KNOW_ENEMY_ARCHON_CHANNEL = 9;
+
     /*
     Define message constants that are to be passed into
     the message array.
