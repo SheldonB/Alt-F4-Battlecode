@@ -10,6 +10,8 @@ public class Base {
     static MapLocation[] archonLocations;
     static MapLocation[] enemyArchonLocations;
 
+    static MapLocation lastKnownEnemyArchonLocation;
+
     static RobotInfo[] visibleFriendlyUnits;
     static RobotInfo[] visibleEnemyUnits;
 
@@ -41,12 +43,15 @@ public class Base {
         visibleEnemyTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam().opponent());
 
         nearbyBullets = rc.senseNearbyBullets();
+
+        tryUpdateEnemyArchonLocation();
     }
 
     static void tryUpdateEnemyArchonLocation() {
         for (RobotInfo robot : visibleEnemyUnits) {
             if (robot.getType() == RobotType.ARCHON) {
-
+                lastKnownEnemyArchonLocation = robot.getLocation();
+                break;
             }
         }
     }
