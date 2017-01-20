@@ -20,6 +20,18 @@ public class Message {
 
     public static final int LAST_KNOW_ENEMY_ARCHON_CHANNEL = 9;
 
+    public static final int MAX_KNOWN_X_INT_LOCATION_CHANNEL = 10;
+    public static final int MAX_KNOWN_X_FLOAT_LOCATION_CHANNEL = MAX_KNOWN_X_INT_LOCATION_CHANNEL + 1;
+
+    public static final int MIN_KNOWN_X_INT_LOCATION_CHANNEL = MAX_KNOWN_X_FLOAT_LOCATION_CHANNEL + 1;
+    public static final int MIN_KNOWN_X_FLOAT_LOCATION_CHANNEL = MIN_KNOWN_X_INT_LOCATION_CHANNEL + 1;
+
+    public static final int MAX_KNOWN_Y_INT_LOCATION_CHANNEL = MIN_KNOWN_X_FLOAT_LOCATION_CHANNEL + 1;
+    public static final int MAX_KNOWN_Y_FLOAT_LOCATION_CHANNEL = MAX_KNOWN_Y_INT_LOCATION_CHANNEL + 1;
+
+    public static final int MIN_KNOWN_Y_INT_LOCATION_CHANNEL = MAX_KNOWN_Y_FLOAT_LOCATION_CHANNEL + 1;
+    public static final int MIN_KNOWN_Y_FLOAT_LOCATION_CHANNEL = MIN_KNOWN_Y_INT_LOCATION_CHANNEL + 1;
+
     /*
     Define message constants that are to be passed into
     the message array.

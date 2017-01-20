@@ -21,6 +21,13 @@ public class Base {
 
     static BulletInfo[] nearbyBullets;
 
+
+    static float maxKnownXLoc;
+    static float minKnownXLoc;
+
+    static float maxKnownYLoc;
+    static float minKnownYLoc;
+
     protected static RobotController rc;
 
     static void init(RobotController rc)
@@ -45,6 +52,7 @@ public class Base {
         nearbyBullets = rc.senseNearbyBullets();
 
         tryUpdateEnemyArchonLocation();
+        tryUpdateKnownMapEdges();
     }
 
     static void tryUpdateEnemyArchonLocation() throws GameActionException {
@@ -58,6 +66,40 @@ public class Base {
         }
 
         rc.broadcast(Message.LAST_KNOW_ENEMY_ARCHON_CHANNEL, Utils.mapLocationToInt(lastKnownEnemyArchonLocation));
+    }
+
+    static void tryUpdateKnownMapEdges() throws GameActionException {
+        float maxXLoc = rc.readBroadcast(Message.MAX_KNOWN_X_INT_LOCATION_CHANNEL)
+                + Utils.toPostDecimal(rc.readBroadcast(Message.MAX_KNOWN_X_FLOAT_LOCATION_CHANNEL));
+        float minXLoc = rc.readBroadcast(Message.MIN_KNOWN_X_INT_LOCATION_CHANNEL)
+                + Utils.toPostDecimal(rc.readBroadcast(Message.MIN_KNOWN_X_FLOAT_LOCATION_CHANNEL  ));
+        float maxYLoc = rc.readBroadcast(Message.MAX_KNOWN_Y_INT_LOCATION_CHANNEL)
+                + Utils.toPostDecimal(Message.MAX_KNOWN_Y_FLOAT_LOCATION_CHANNEL);
+        float minYLoc = rc.readBroadcast(Message.MIN_KNOWN_Y_INT_LOCATION_CHANNEL)
+                + Utils.toPostDecimal(rc.readBroadcast(Message.MIN_KNOWN_Y_FLOAT_LOCATION_CHANNEL));
+
+        float currentX = rc.getLocation().x;
+        float currentY = rc.getLocation().y;
+
+        if (currentX > maxXLoc) {
+            rc.broadcast(Message.MAX_KNOWN_X_INT_LOCATION_CHANNEL, Utils.getPreDecimal(currentX));
+            rc.broadcast(Message.MAX_KNOWN_X_FLOAT_LOCATION_CHANNEL, Utils.getPostDecimal(currentX));
+            maxKnownXLoc = currentX;
+        } else if (currentX < minXLoc) {
+            rc.broadcast(Message.MIN_KNOWN_X_INT_LOCATION_CHANNEL, Utils.getPreDecimal(currentX));
+            rc.broadcast(Message.MIN_KNOWN_X_FLOAT_LOCATION_CHANNEL, Utils.getPostDecimal(currentX));
+            minKnownXLoc = currentX;
+        }
+
+        if (currentY > maxYLoc) {
+            rc.broadcast(Message.MAX_KNOWN_Y_INT_LOCATION_CHANNEL, Utils.getPreDecimal(currentY));
+            rc.broadcast(Message.MAX_KNOWN_Y_FLOAT_LOCATION_CHANNEL, Utils.getPostDecimal(currentY));
+            maxKnownYLoc = currentY;
+        } else if (currentY < minYLoc) {
+            rc.broadcast(Message.MIN_KNOWN_Y_INT_LOCATION_CHANNEL, Utils.getPreDecimal(currentY));
+            rc.broadcast(Message.MIN_KNOWN_Y_FLOAT_LOCATION_CHANNEL, Utils.getPostDecimal(currentY));
+            minKnownYLoc = currentY;
+        }
     }
 
     static boolean trySpawnUnit(Direction dir, RobotType type) throws GameActionException {
