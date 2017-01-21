@@ -1,8 +1,8 @@
 package Alt_F4;
 
-import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
-import battlecode.common.MapLocation;
+import battlecode.common.*;
+import java.util.List;
+import java.util.ArrayList;
 
 class Utils extends Base {
     static boolean CheckWinConditions() throws GameActionException {
@@ -35,5 +35,17 @@ class Utils extends Base {
         int x = ((data & 0xffc00) >>> 10);
         int y = (data & 0x003ff);
         return new MapLocation(x, y);
+    }
+
+    static List<Direction> computeDirections(Direction initDirection, float offset) {
+        List<Direction> computedDirections = new ArrayList<>();
+        float rotationAngle = 0;
+
+        while (rotationAngle <= 360) {
+            computedDirections.add(initDirection.rotateRightDegrees(rotationAngle));
+            rotationAngle += offset;
+        }
+
+        return computedDirections;
     }
 }
