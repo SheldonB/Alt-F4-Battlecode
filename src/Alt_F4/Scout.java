@@ -15,24 +15,10 @@ public class Scout extends Base {
                 Base.update();
 
                 tryDodgeBullet();
+
                 if (strategy == Message.SCOUT_RUSH_MESSAGE) {
                     tryScoutRush();
                 }
-
-                //updateTarget();
-                /*
-                if (targetLocation == null) {
-                    System.out.println("Trying to wander");
-                    wander();
-                } else {
-                    if (rc.getLocation().distanceTo(targetLocation) > GameConstants.LUMBERJACK_STRIKE_RADIUS) {
-                        System.out.println("Has target. Moving toward and trying to fire.");
-                        Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
-                    }
-
-                    tryAttackTargetUnit();
-                }
-                */
 
                 collectBullets();
                 Clock.yield();
@@ -64,7 +50,9 @@ public class Scout extends Base {
         if (targetLocation == null) {
             wander();
         } else {
-            if (!tryHideInNearbyTree()) {
+            if (rc.getRoundNum() > 100) {
+                hideInNearbyTree();
+            } else {
                 if (rc.getLocation().distanceTo(targetLocation) > GameConstants.LUMBERJACK_STRIKE_RADIUS * 2) {
                     Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
                 }
@@ -74,7 +62,7 @@ public class Scout extends Base {
 
     }
 
-    static boolean tryHideInNearbyTree() throws GameActionException {
+    static void hideInNearbyTree() throws GameActionException {
         TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
         for (TreeInfo tree : nearbyTrees) {
             Direction treeToEnemy = tree.getLocation().directionTo(targetLocation);
@@ -82,11 +70,9 @@ public class Scout extends Base {
 
             if (rc.canMove(offsetLocation)) {
                 rc.move(offsetLocation);
-                return true;
+                break;
             }
         }
-
-        return false;
     }
 
     static boolean willCollideWithMe(BulletInfo bullet) {
@@ -132,7 +118,6 @@ public class Scout extends Base {
         }
     }
 
-
     static void tryAttackTargetUnit() throws GameActionException {
         if (rc.canSenseRobot(targetID) && rc.canFireSingleShot()) {
             RobotInfo target = rc.senseRobot(targetID);
@@ -140,37 +125,8 @@ public class Scout extends Base {
                 Direction dir = rc.getLocation().directionTo(target.getLocation());
                 rc.fireSingleShot(dir);
             }
-        } else {
-            targetLocation = null;
-            targetID = 0;
         }
     }
-
-    /*
-    static void coordinateAttack() throws GameActionException {
-        //if (rc.readBroadcast(Message.SCOUT_ATTACK_COORD_CHANNEL) == 0) {
-        //    targetLocation = determineRushLocation();
-        //    rc.broadcast(Message.SCOUT_ATTACK_COORD_CHANNEL, Utils.mapLocationToInt(targetLocation));
-        //}
-
-        //if (targetLocation == null) {
-        //    targetLocation = updateTarget();
-
-        //    if (targetLocation == null) {
-        //        wandering = true;
-        //    }
-        } else {
-            rc.setIndicatorLine(rc.getLocation(), targetLocation, 0, 255, 0);
-        }
-
-        if (rc.getLocation().distanceTo(targetLocation) > GameConstants.LUMBERJACK_STRIKE_RADIUS) {
-            Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
-        }
-
-        //targetLocation = determinePriorityTarget();
-        //tryFireOnTarget(targetLocation);
-    }
-    */
 
     static void tryFireOnTarget(MapLocation loc) throws GameActionException {
         if (visibleEnemyUnits.length != 0) {
