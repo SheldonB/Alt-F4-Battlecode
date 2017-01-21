@@ -21,7 +21,6 @@ public class Base {
 
     static BulletInfo[] nearbyBullets;
 
-
     static float maxKnownXLoc;
     static float minKnownXLoc;
 
