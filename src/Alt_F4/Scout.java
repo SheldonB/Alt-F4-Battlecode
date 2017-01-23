@@ -17,7 +17,7 @@ public class Scout extends Base {
             try {
                 Base.update();
 
-                tryDodgeBullet();
+                Pathing.tryDodgeBullet();
 
                 tryScoutRush();
 
@@ -74,49 +74,6 @@ public class Scout extends Base {
             if (rc.canMove(offsetLocation)) {
                 rc.move(offsetLocation);
                 break;
-            }
-        }
-    }
-
-    static boolean willCollideWithMe(BulletInfo bullet) {
-        MapLocation myLocation = rc.getLocation();
-
-        // Get relevant bullet information
-        Direction propagationDirection = bullet.dir;
-        MapLocation bulletLocation = bullet.location;
-
-        // Calculate bullet relations to this robot
-        Direction directionToRobot = bulletLocation.directionTo(myLocation);
-        float distToRobot = bulletLocation.distanceTo(myLocation);
-        float theta = propagationDirection.radiansBetween(directionToRobot);
-
-        // If theta > 90 degrees, then the bullet is traveling away from us and we can break early
-        if (Math.abs(theta) > Math.PI / 2) {
-            return false;
-        }
-
-        // distToRobot is our hypotenuse, theta is our angle, and we want to know this length of the opposite leg.
-        // This is the distance of a line that goes from myLocation and intersects perpendicularly with propagationDirection.
-        // This corresponds to the smallest radius circle centered at our location that would intersect with the
-        // line that is the path of the bullet.
-        float perpendicularDist = (float) Math.abs(distToRobot * Math.sin(theta)); // soh cah toa :)
-
-        return (perpendicularDist <= rc.getType().bodyRadius);
-    }
-
-    static boolean trySideStep(BulletInfo bullet) throws GameActionException{
-
-        Direction towards = bullet.getDir();
-        MapLocation leftGoal = rc.getLocation().add(towards.rotateLeftDegrees(90), rc.getType().bodyRadius);
-        MapLocation rightGoal = rc.getLocation().add(towards.rotateRightDegrees(90), rc.getType().bodyRadius);
-
-        return(Pathing.tryMove(towards.rotateRightDegrees(90)) || Pathing.tryMove(towards.rotateLeftDegrees(90)));
-    }
-
-    static void tryDodgeBullet() throws GameActionException {
-        for (BulletInfo bullet : nearbyBullets) {
-            if (willCollideWithMe(bullet)) {
-                trySideStep(bullet);
             }
         }
     }
