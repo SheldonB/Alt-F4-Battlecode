@@ -17,6 +17,7 @@ class Gardener extends Base {
     private static int builtTreeCount;
     private static State currentState;
     private static boolean hasTriedBuildThisTurn;
+    private static List<TreeInfo> builtTrees;
 
     static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -30,9 +31,9 @@ class Gardener extends Base {
                while (currentState != State.END_TURN) {
                    executeCurrentState();
                    determineNextState();
-                   if (rc.getRoundNum() > 200) {
-                       rc.resign();
-                   }
+                   //if (rc.getRoundNum() > ) {
+                   //    rc.resign();
+                   //}
                }
 
                currentState = null;
@@ -99,22 +100,26 @@ class Gardener extends Base {
         hasTriedBuildThisTurn = true;
         for (Direction dir : directions) {
             if (sensedTrees.length == 0 && rc.canPlantTree(dir)) {
-                rc.plantTree(dir);
-                builtTreeCount++;
-                return true;
+                return tryPlantTree(dir);
             } else {
                 for (TreeInfo tree : sensedTrees) {
-                    if (tree.getLocation().distanceTo(rc.getLocation().add(dir, rc.getType().bodyRadius + GameConstants.BULLET_TREE_RADIUS))
-                            <= GameConstants.BULLET_TREE_RADIUS * 4F) {
-                        break;
-                    }
-                    if (rc.canPlantTree(dir)) {
-                        rc.plantTree(dir);
-                        builtTreeCount++;
+                    if (tree.getLocation().distanceTo(rc.getLocation().add(dir, rc.getType().bodyRadius
+                            + GameConstants.BULLET_TREE_RADIUS)) <= GameConstants.BULLET_TREE_RADIUS * 4F) {
+                        return false;
                     }
                 }
+                return tryPlantTree(dir);
             }
 
+        }
+        return false;
+    }
+
+    private static boolean tryPlantTree(Direction dir) throws GameActionException {
+        if (rc.canPlantTree(dir)) {
+            rc.plantTree(dir);
+            builtTreeCount++;
+            return true;
         }
         return false;
     }
