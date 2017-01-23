@@ -3,13 +3,13 @@ package Alt_F4;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 
-public class Debug extends Base {
+class Debug extends Base {
 
-    public static void debug_drawSensorRadius() {
+    static void debug_drawSensorRadius() {
         debug_drawCircle(15, rc.getType().sensorRadius, 255, 0, 0);
     }
 
-    public static void debug_drawStrideRadius() {
+    static void debug_drawStrideRadius() {
         debug_drawCircle(45, rc.getType().strideRadius, 0, 0, 255);
     }
 
