@@ -17,7 +17,7 @@ public class Pathing extends Base {
      * @throws GameActionException
      */
     static boolean tryMove(Direction dir) throws GameActionException {
-        return tryMove(dir,20,3, rc.getType().strideRadius);
+        return tryMove(dir,20,8, rc.getType().strideRadius);
     }
 
     static boolean tryMove(Direction dir, float distance) throws GameActionException {
