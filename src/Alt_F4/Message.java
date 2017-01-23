@@ -12,6 +12,8 @@ public class Message {
     public static final int ARCHON_VOTING_START_CHANNEL = 1;
     public static final int ARCHON_VOTING_END_CHANNEL = 4;
 
+    public static final int TOTAL_TREE_COUNT_CHANNEL = 20;
+
     public static final int GARDENER_COUNT_CHANNEL = 5;
 
     public static final int SCOUT_COUNT_CHANNEL = 6;
