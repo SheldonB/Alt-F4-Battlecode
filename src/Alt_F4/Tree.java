@@ -33,5 +33,6 @@ public class Tree {
     }
 
     public boolean shouldBeWatered() {
+        return true;
     }
 }
