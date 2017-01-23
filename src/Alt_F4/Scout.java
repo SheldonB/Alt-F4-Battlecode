@@ -2,6 +2,8 @@ package Alt_F4;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 public class Scout extends Base {
     private static MapLocation targetLocation;
     private static int targetID = 0;
@@ -10,15 +12,14 @@ public class Scout extends Base {
 
     public static void run() throws GameActionException {
         int strategy = rc.readBroadcast(Message.STRATEGY_CHANNEL);
+
         while (true) {
             try {
                 Base.update();
 
                 tryDodgeBullet();
 
-                if (strategy == Message.SCOUT_RUSH_MESSAGE) {
-                    tryScoutRush();
-                }
+                tryScoutRush();
 
                 collectBullets();
                 Clock.yield();
@@ -64,9 +65,11 @@ public class Scout extends Base {
 
     static void hideInNearbyTree() throws GameActionException {
         TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
+        Arrays.sort(nearbyTrees, (o1, o2) -> Float.compare(o1.getLocation().distanceTo(targetLocation), o2.getLocation().distanceTo(targetLocation)));
+
         for (TreeInfo tree : nearbyTrees) {
             Direction treeToEnemy = tree.getLocation().directionTo(targetLocation);
-            MapLocation offsetLocation = tree.getLocation().add(treeToEnemy, tree.getRadius());
+            MapLocation offsetLocation = tree.getLocation().add(treeToEnemy, tree.getRadius() - rc.getType().bodyRadius);
 
             if (rc.canMove(offsetLocation)) {
                 rc.move(offsetLocation);
