@@ -20,6 +20,8 @@ public class Message {
     public static final int SCOUT_ATTACK_COORD_CHANNEL = 7;
     public static final int SCOUT_ATTACK_TARGET_ID_CHANNEL = 8;
 
+    public static final int LUMBERJACK_COUNT_CHANNEL = 30;
+
     public static final int LAST_KNOW_ENEMY_ARCHON_CHANNEL = 9;
 
     public static final int MAX_KNOWN_X_INT_LOCATION_CHANNEL = 10;
