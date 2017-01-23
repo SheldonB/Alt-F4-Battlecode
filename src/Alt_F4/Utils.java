@@ -8,10 +8,10 @@ class Utils extends Base {
     public static final float PI = 3.1415927F;
 
     static boolean CheckWinConditions() throws GameActionException {
-        //if (rc.getTeamBullets() >= GameConstants.VICTORY_POINTS_TO_WIN * GameConstants.) {
-        //    rc.donate(rc.getTeamBullets());
-        //    return true;
-        //}
+        if (7.5 + (rc.getRoundNum() * 12.5) / 3000 >= GameConstants.VICTORY_POINTS_TO_WIN) {
+            rc.donate(rc.getTeamBullets());
+            return true;
+        }
         return false;
     }
 
