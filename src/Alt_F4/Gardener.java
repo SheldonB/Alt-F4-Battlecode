@@ -80,7 +80,7 @@ class Gardener extends Base {
     private static void determineNextState() throws GameActionException {
 
         if(rc.isBuildReady()) {
-            if (shouldSpawnUnit()) {
+            if (shouldBuildUnit()) {
                 currentState = State.BUILDING;
                 System.out.println("Switching State to Building");
                 return;
@@ -142,6 +142,7 @@ class Gardener extends Base {
             builtTreeCount++;
             // Add the closest tree to the built trees list
             builtTrees.add(new Tree(rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam())[0], rc.getRoundNum()));
+            rc.broadcast(Message.TOTAL_TREE_COUNT_CHANNEL, rc.readBroadcast(Message.TOTAL_TREE_COUNT_CHANNEL) + 1);
             return true;
         }
         return false;
@@ -161,19 +162,21 @@ class Gardener extends Base {
         return false;
     }
 
-    static boolean shouldSpawnUnit() throws GameActionException {
-        return shouldSpawnScout() || shouldSpawnLumberJack();
+    static boolean shouldBuildUnit() throws GameActionException {
+        return shouldBuildScout() || shouldBuildLumberJack() || shouldBuildScout();
     }
 
     static void tryBuildPriorityUnit() throws GameActionException {
-        if (shouldSpawnScout()) {
+        if (shouldBuildScout()) {
             tryBuildScout();
-        } else if (shouldSpawnLumberJack()) {
+        } else if (shouldBuildLumberJack()) {
             tryBuildLumberJack();
+        } else if (shouldBuildSoldier()) {
+            tryBuildSolider();
         }
     }
 
-    static boolean shouldSpawnLumberJack() throws GameActionException {
+    static boolean shouldBuildLumberJack() throws GameActionException {
         if (rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) < 10) {
             return true;
         }
@@ -193,7 +196,7 @@ class Gardener extends Base {
         return false;
     }
 
-    static boolean shouldSpawnScout() throws GameActionException {
+    static boolean shouldBuildScout() throws GameActionException {
         if (rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) < 2) {
             return true;
         }
@@ -207,6 +210,24 @@ class Gardener extends Base {
             if (rc.canBuildRobot(RobotType.SCOUT, dir)) {
                 rc.buildRobot(RobotType.SCOUT, dir);
                 rc.broadcast(Message.SCOUT_COUNT_CHANNEL, rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) + 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    static boolean shouldBuildSoldier() throws GameActionException {
+        return rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL) < 15;
+    }
+
+    static boolean tryBuildSolider() throws GameActionException {
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
+
+        for (Direction dir : directions) {
+            if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
+                rc.buildRobot(RobotType.SOLDIER, dir);
+                rc.broadcast(Message.SOLDIER_COUNT_CHANNEL, rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL) + 1);
                 return true;
             }
         }

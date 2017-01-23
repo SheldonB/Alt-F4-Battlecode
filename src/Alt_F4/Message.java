@@ -22,6 +22,8 @@ public class Message {
 
     public static final int LUMBERJACK_COUNT_CHANNEL = 30;
 
+    public static final int SOLDIER_COUNT_CHANNEL = 35;
+
     public static final int LAST_KNOW_ENEMY_ARCHON_CHANNEL = 9;
 
     public static final int MAX_KNOWN_X_INT_LOCATION_CHANNEL = 10;
