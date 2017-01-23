@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.ArrayList;
 
 class Utils extends Base {
+    public static final float PI = 3.1415927F;
+
     static boolean CheckWinConditions() throws GameActionException {
-        if (rc.getTeamBullets() >= GameConstants.VICTORY_POINTS_TO_WIN * GameConstants.BULLET_EXCHANGE_RATE) {
-            rc.donate(rc.getTeamBullets());
-            return true;
-        }
+        //if (rc.getTeamBullets() >= GameConstants.VICTORY_POINTS_TO_WIN * GameConstants.) {
+        //    rc.donate(rc.getTeamBullets());
+        //    return true;
+        //}
         return false;
     }
 
@@ -37,12 +39,12 @@ class Utils extends Base {
         return new MapLocation(x, y);
     }
 
-    static List<Direction> computeDirections(Direction initDirection, float offset) {
+    static strictfp List<Direction> computeDirections(Direction initDirection, float offset) {
         List<Direction> computedDirections = new ArrayList<>();
-        float rotationAngle = 0;
+        float rotationAngle = 0F;
 
-        while (rotationAngle <= 360) {
-            computedDirections.add(initDirection.rotateRightDegrees(rotationAngle));
+        while (rotationAngle < 2F * Utils.PI) {
+            computedDirections.add(initDirection.rotateRightRads(rotationAngle));
             rotationAngle += offset;
         }
 
