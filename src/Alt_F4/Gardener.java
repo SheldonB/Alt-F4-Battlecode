@@ -2,6 +2,7 @@ package Alt_F4;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -15,30 +16,35 @@ class Gardener extends Base {
         END_TURN
     }
 
+    private static final int TREES_TO_SPAWN = 5;
+
     private static int builtTreeCount;
     private static State currentState;
-    private static boolean hasTriedBuildThisTurn;
-    private static TreeInfo wateringTarget;
+
+    private static boolean hasFoundBuildLocation = false;
+    private static boolean hasSpawnedScout = false;
+
     private static List<Tree> builtTrees = new ArrayList<>();
 
     static void run() throws GameActionException {
         System.out.println("Gardener spawned");
-        currentState = null;
+
+
         while (true) {
            try {
+               Debug.debug_drawSensorRadius();
                Base.update();
                Utils.CheckWinConditions();
-               hasTriedBuildThisTurn = false;
 
+               currentState = null;
                while (currentState != State.END_TURN) {
                    executeCurrentState();
                    determineNextState();
-                   if (rc.getRoundNum() > 100) {
-                       rc.resign();
-                   }
+                   //if (rc.getRoundNum() > 500) {
+                   //    rc.resign();
+                   //}
                }
 
-               currentState = null;
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
@@ -51,8 +57,12 @@ class Gardener extends Base {
             return;
         }
 
+        if (currentState == State.BUILDING) {
+            tryBuildPriorityUnit();
+        }
+
         if (currentState == State.WATERING) {
-            tryWaterTargetTree();
+            tryWaterTree();
             return;
         }
 
@@ -61,43 +71,35 @@ class Gardener extends Base {
             return;
         }
 
-        if (currentState == State.MOVING && !rc.hasMoved()) {
-            if (wateringTarget != null) {
-                Pathing.tryMove(rc.getLocation().directionTo(wateringTarget.getLocation()));
-                return;
-            }
-            Pathing.tryMove(Pathing.randomDirection());
+        if (currentState == State.MOVING) {
+            tryMoveToValidBuildLocation();
         }
+
     }
 
     private static void determineNextState() throws GameActionException {
 
-        if(rc.isBuildReady() && !hasTriedBuildThisTurn) {
-            if (builtTreeCount < 5 && rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
+        if(rc.isBuildReady()) {
+            if (shouldSpawnUnit()) {
+                currentState = State.BUILDING;
+                System.out.println("Switching State to Building");
+                return;
+            }
+
+            if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
                 currentState = State.PLANTING;
                 System.out.println("Switching State to Planting");
                 return;
             }
         }
 
-        if (builtTrees.size() > 0 && rc.canWater()) {
-            for (Tree tree : builtTrees) {
-                if (tree.isFullyMatured() && tree.shouldBeWatered()) {
-                    if (tree.getTreeInfo().getLocation().isWithinStrideDistance(rc.senseRobot(rc.getID()))) {
-                        //wateringTarget = tree;
-                        currentState = State.WATERING;
-                        System.out.println("Switching state to watering");
-                        return;
-                    } else {
-                        //wateringTarget = tree;
-                        currentState = State.MOVING;
-                        return;
-                    }
-                }
-            }
+        if (builtTreeCount > 0 && rc.canWater()) {
+            currentState =  State.WATERING;
+            System.out.println("Switching state to watering");
+            return;
         }
 
-        if (!rc.hasMoved()) {
+        if (!rc.hasMoved() && !hasFoundBuildLocation) {
             currentState = State.MOVING;
             System.out.println("Switching State to Moving");
             return;
@@ -109,26 +111,28 @@ class Gardener extends Base {
         System.out.println("Switching state to End Turn");
     }
 
-    private static boolean tryPlantTree() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Pathing.randomDirection(), 15);
-        TreeInfo[] sensedTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam());
+    private static boolean tryMoveToValidBuildLocation() throws GameActionException {
+        if (!isValidBuildLocation(rc.getLocation())) {
+            return Pathing.tryMove(Pathing.randomDirection());
+        }
 
-        hasTriedBuildThisTurn = true;
+        hasFoundBuildLocation = true;
+        return false;
+    }
+
+    private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
+        return !rc.isCircleOccupiedExceptByThisRobot(loc, rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2));
+    }
+
+    private static boolean tryPlantTree() throws GameActionException {
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
 
         for (Direction dir : directions) {
-            if (sensedTrees.length == 0 && rc.canPlantTree(dir)) {
-                return tryPlantTree(dir);
-            } else {
-                for (TreeInfo tree : sensedTrees) {
-                    if (tree.getLocation().distanceTo(rc.getLocation().add(dir, rc.getType().bodyRadius
-                            + GameConstants.BULLET_TREE_RADIUS)) <= GameConstants.BULLET_TREE_RADIUS * 4F) {
-                        return false;
-                    }
-                }
-                return tryPlantTree(dir);
+            if (tryPlantTree(dir)) {
+                return true;
             }
-
         }
+
         return false;
     }
 
@@ -143,10 +147,34 @@ class Gardener extends Base {
         return false;
     }
 
-    private static boolean tryWaterTargetTree() throws GameActionException {
-        if (rc.canWater()) {
-            rc.water(wateringTarget.getID());
-            wateringTarget = null;
+    private static boolean tryWaterTree() throws GameActionException {
+        TreeInfo[] sensedTrees = rc.senseNearbyTrees();
+        Arrays.sort(sensedTrees, (o1, o2) -> Float.compare(o1.getHealth(), o2.getHealth()));
+
+        for (TreeInfo tree : sensedTrees) {
+            if (rc.canWater(tree.getID())
+                    && tree.getHealth() <= tree.getMaxHealth() - GameConstants.BULLET_TREE_DECAY_RATE) {
+                rc.water(tree.getID());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static boolean shouldSpawnUnit() throws GameActionException {
+        return shouldSpawnScout() || shouldSpawnLumberJack();
+    }
+
+    static void tryBuildPriorityUnit() throws GameActionException {
+        if (shouldSpawnScout()) {
+            tryBuildScout();
+        } else if (shouldSpawnLumberJack()) {
+            tryBuildLumberJack();
+        }
+    }
+
+    static boolean shouldSpawnLumberJack() throws GameActionException {
+        if (rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) < 10) {
             return true;
         }
         return false;
@@ -158,8 +186,16 @@ class Gardener extends Base {
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
                 rc.buildRobot(RobotType.LUMBERJACK, dir);
+                rc.broadcast(Message.LUMBERJACK_COUNT_CHANNEL, rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) + 1);
                 return true;
             }
+        }
+        return false;
+    }
+
+    static boolean shouldSpawnScout() throws GameActionException {
+        if (rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) < 2) {
+            return true;
         }
         return false;
     }
