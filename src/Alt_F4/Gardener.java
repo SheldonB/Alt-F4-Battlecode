@@ -3,6 +3,7 @@ package Alt_F4;
 import battlecode.common.*;
 
 import java.util.List;
+import java.util.ArrayList;
 
 class Gardener extends Base {
 
@@ -17,7 +18,8 @@ class Gardener extends Base {
     private static int builtTreeCount;
     private static State currentState;
     private static boolean hasTriedBuildThisTurn;
-    private static List<TreeInfo> builtTrees;
+    private static TreeInfo wateringTarget;
+    private static List<Tree> builtTrees = new ArrayList<>();
 
     static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -31,9 +33,9 @@ class Gardener extends Base {
                while (currentState != State.END_TURN) {
                    executeCurrentState();
                    determineNextState();
-                   //if (rc.getRoundNum() > ) {
-                   //    rc.resign();
-                   //}
+                   if (rc.getRoundNum() > 100) {
+                       rc.resign();
+                   }
                }
 
                currentState = null;
@@ -50,6 +52,7 @@ class Gardener extends Base {
         }
 
         if (currentState == State.WATERING) {
+            tryWaterTargetTree();
             return;
         }
 
@@ -58,26 +61,16 @@ class Gardener extends Base {
             return;
         }
 
-        if (currentState == State.MOVING) {
+        if (currentState == State.MOVING && !rc.hasMoved()) {
+            if (wateringTarget != null) {
+                Pathing.tryMove(rc.getLocation().directionTo(wateringTarget.getLocation()));
+                return;
+            }
             Pathing.tryMove(Pathing.randomDirection());
         }
     }
 
     private static void determineNextState() throws GameActionException {
-        // Check if current target is within stride radius
-        //if (currentTarget != null && currentTarget.getLocation().isWithinStrideDistance(rc.senseRobot(rc.getID()))) {
-        //    if (currentTarget.getHealth() < GameConstants.BULLET_TREE_MAX_HEALTH - GameConstants.BULLET_TREE_DECAY_RATE) {
-        //        currentState = State.WATERING;
-        //        System.out.println("Switching State to Watering");
-        //        return;
-        //    }
-        //}
-
-        if (!rc.hasMoved()) {
-            currentState = State.MOVING;
-            System.out.println("Switching State to Moving");
-            return;
-        }
 
         if(rc.isBuildReady() && !hasTriedBuildThisTurn) {
             if (builtTreeCount < 5 && rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
@@ -85,6 +78,29 @@ class Gardener extends Base {
                 System.out.println("Switching State to Planting");
                 return;
             }
+        }
+
+        if (builtTrees.size() > 0 && rc.canWater()) {
+            for (Tree tree : builtTrees) {
+                if (tree.isFullyMatured() && tree.shouldBeWatered()) {
+                    if (tree.getTreeInfo().getLocation().isWithinStrideDistance(rc.senseRobot(rc.getID()))) {
+                        //wateringTarget = tree;
+                        currentState = State.WATERING;
+                        System.out.println("Switching state to watering");
+                        return;
+                    } else {
+                        //wateringTarget = tree;
+                        currentState = State.MOVING;
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (!rc.hasMoved()) {
+            currentState = State.MOVING;
+            System.out.println("Switching State to Moving");
+            return;
         }
 
         // If we cant go to any other states, we are done
@@ -98,6 +114,7 @@ class Gardener extends Base {
         TreeInfo[] sensedTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam());
 
         hasTriedBuildThisTurn = true;
+
         for (Direction dir : directions) {
             if (sensedTrees.length == 0 && rc.canPlantTree(dir)) {
                 return tryPlantTree(dir);
@@ -119,33 +136,44 @@ class Gardener extends Base {
         if (rc.canPlantTree(dir)) {
             rc.plantTree(dir);
             builtTreeCount++;
+            // Add the closest tree to the built trees list
+            builtTrees.add(new Tree(rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam())[0], rc.getRoundNum()));
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean tryWaterTargetTree() throws GameActionException {
+        if (rc.canWater()) {
+            rc.water(wateringTarget.getID());
+            wateringTarget = null;
             return true;
         }
         return false;
     }
 
     static boolean tryBuildLumberJack() throws GameActionException {
-        if (rc.canBuildRobot(RobotType.LUMBERJACK, Direction.getSouth())) {
-            rc.buildRobot(RobotType.LUMBERJACK, Direction.getSouth());
-            return true;
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
+
+        for (Direction dir : directions) {
+            if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
+                rc.buildRobot(RobotType.LUMBERJACK, dir);
+                return true;
+            }
         }
         return false;
     }
 
     static boolean tryBuildScout() throws GameActionException {
-        int angle = 0;
-        int offset = 30;
-        Direction dir = Direction.getEast();
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
 
-        while (angle <= 360) {
-            if (rc.canBuildRobot(RobotType.SCOUT, dir.rotateRightDegrees(angle))) {
-                rc.buildRobot(RobotType.SCOUT, dir.rotateRightDegrees(angle));
+        for (Direction dir : directions) {
+            if (rc.canBuildRobot(RobotType.SCOUT, dir)) {
+                rc.buildRobot(RobotType.SCOUT, dir);
                 rc.broadcast(Message.SCOUT_COUNT_CHANNEL, rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) + 1);
                 return true;
             }
-            angle += offset;
         }
-
         return false;
     }
 }
