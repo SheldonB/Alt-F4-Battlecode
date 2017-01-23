@@ -21,7 +21,7 @@ public class Scout extends Base {
 
                 tryScoutRush();
 
-                collectBullets();
+                Utils.collectBullets();
                 Clock.yield();
             } catch (Exception e) {
                System.out.println(e.getMessage());
@@ -127,14 +127,6 @@ public class Scout extends Base {
         return closestArchonLocation;
     }
 
-    static void collectBullets() throws GameActionException {
-        for (TreeInfo tree : visibleNeutralTrees) {
-            if (rc.canShake(tree.getID())) {
-                rc.shake(tree.getID());
-                break;
-            }
-        }
-    }
 
     static void wander() throws GameActionException {
         Pathing.tryMove(Pathing.randomDirection());

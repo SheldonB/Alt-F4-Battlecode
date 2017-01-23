@@ -15,6 +15,15 @@ class Utils extends Base {
         return false;
     }
 
+    static void collectBullets() throws GameActionException {
+        for (TreeInfo tree : visibleNeutralTrees) {
+            if (rc.canShake(tree.getID())) {
+                rc.shake(tree.getID());
+                break;
+            }
+        }
+    }
+
     static int getPreDecimal(float data) {
         return Math.round(data - (data % 1));
     }
