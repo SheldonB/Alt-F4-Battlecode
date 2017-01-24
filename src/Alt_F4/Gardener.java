@@ -8,43 +8,22 @@ import java.util.ArrayList;
 
 class Gardener extends Base {
 
-    private enum State {
-        MOVING,
-        PLANTING,
-        WATERING,
-        BUILDING,
-        END_TURN
-    }
-
     private static final int TREES_TO_SPAWN = 5;
 
     private static int builtTreeCount;
-    private static State currentState;
 
     private static boolean hasFoundBuildLocation = false;
-    private static boolean hasSpawnedScout = false;
 
     private static List<Tree> builtTrees = new ArrayList<>();
 
     static void run() throws GameActionException {
         System.out.println("Gardener spawned");
 
-
         while (true) {
            try {
-               Debug.debug_drawSensorRadius();
                Base.update();
                Utils.CheckWinConditions();
-
-               currentState = null;
-               while (currentState != State.END_TURN) {
-                   executeCurrentState();
-                   determineNextState();
-                   //if (rc.getRoundNum() > 500) {
-                   //    rc.resign();
-                   //}
-               }
-
+               runRound();
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
@@ -52,68 +31,32 @@ class Gardener extends Base {
         }
     }
 
-    private static void executeCurrentState() throws GameActionException {
-        if (currentState == null || currentState == State.END_TURN) {
-            return;
+    private static void runRound() throws GameActionException  {
+        if (shouldBuildScout()) {
+            tryBuildScout();
         }
 
-        if (currentState == State.BUILDING) {
-            tryBuildPriorityUnit();
+        if (shouldBuildLumberJack())  {
+            tryBuildLumberJack();
         }
 
-        if (currentState == State.WATERING) {
-            tryWaterTree();
-            return;
-        }
-
-        if (currentState == State.PLANTING) {
-            tryPlantTree();
-            return;
-        }
-
-        if (currentState == State.MOVING) {
+        if (!hasFoundBuildLocation && !rc.hasMoved()) {
             tryMoveToValidBuildLocation();
         }
 
-    }
-
-    private static void determineNextState() throws GameActionException {
-
-        if(rc.isBuildReady()) {
-            if (shouldBuildUnit()) {
-                currentState = State.BUILDING;
-                System.out.println("Switching State to Building");
-                return;
-            }
-
-            if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
-                currentState = State.PLANTING;
-                System.out.println("Switching State to Planting");
-                return;
-            }
+        if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) > 0) {
+            tryPlantTree();
         }
 
-        if (builtTreeCount > 0 && rc.canWater()) {
-            currentState =  State.WATERING;
-            System.out.println("Switching state to watering");
-            return;
+        if (rc.canWater()) {
+            tryWaterTree();
         }
-
-        if (!rc.hasMoved() && !hasFoundBuildLocation) {
-            currentState = State.MOVING;
-            System.out.println("Switching State to Moving");
-            return;
-        }
-
-        // If we cant go to any other states, we are done
-        // with this turn
-        currentState = State.END_TURN;
-        System.out.println("Switching state to End Turn");
     }
 
     private static boolean tryMoveToValidBuildLocation() throws GameActionException {
         if (!isValidBuildLocation(rc.getLocation())) {
-            return Pathing.tryMove(Pathing.randomDirection());
+            //return Pathing.tryMove(Pathing.randomDirection());
+            return Pathing.trySmartMove();
         }
 
         hasFoundBuildLocation = true;
@@ -132,7 +75,6 @@ class Gardener extends Base {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -163,7 +105,7 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildUnit() throws GameActionException {
-        return shouldBuildScout() || shouldBuildLumberJack() || shouldBuildScout();
+        return shouldBuildScout() || shouldBuildLumberJack(); //|| shouldBuildScout();
     }
 
     static void tryBuildPriorityUnit() throws GameActionException {
@@ -176,28 +118,9 @@ class Gardener extends Base {
         }
     }
 
-    static boolean shouldBuildLumberJack() throws GameActionException {
-        if (rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) < 10) {
-            return true;
-        }
-        return false;
-    }
-
-    static boolean tryBuildLumberJack() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
-
-        for (Direction dir : directions) {
-            if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
-                rc.buildRobot(RobotType.LUMBERJACK, dir);
-                rc.broadcast(Message.LUMBERJACK_COUNT_CHANNEL, rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) + 1);
-                return true;
-            }
-        }
-        return false;
-    }
-
     static boolean shouldBuildScout() throws GameActionException {
-        if (rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) < 2) {
+        int scoutCount = rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL);
+        if (scoutCount < 2) {
             return true;
         }
         return false;
@@ -216,9 +139,32 @@ class Gardener extends Base {
         return false;
     }
 
+    static boolean shouldBuildLumberJack() throws GameActionException {
+        int lumberjackCount = rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL);
+        int treeCount = rc.readBroadcast(Message.TOTAL_TREE_COUNT_CHANNEL);
+
+        if ((!shouldBuildScout() && treeCount == 0) || (builtTreeCount > 3 && lumberjackCount < 10)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    static boolean tryBuildLumberJack() throws GameActionException {
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
+
+        for (Direction dir : directions) {
+            if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
+                rc.buildRobot(RobotType.LUMBERJACK, dir);
+                rc.broadcast(Message.LUMBERJACK_COUNT_CHANNEL, rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) + 1);
+                return true;
+            }
+        }
+        return false;
+    }
 
     static boolean shouldBuildSoldier() throws GameActionException {
-        return rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL) < 15;
+        return rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL) < 10 && !shouldBuildLumberJack();
     }
 
     static boolean tryBuildSolider() throws GameActionException {
