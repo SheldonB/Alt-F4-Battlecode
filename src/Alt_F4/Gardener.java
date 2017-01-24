@@ -44,7 +44,7 @@ class Gardener extends Base {
             tryMoveToValidBuildLocation();
         }
 
-        if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) > 0) {
+        if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && numberOfLumberjacks > 0) {
             tryPlantTree();
         }
 
@@ -84,7 +84,7 @@ class Gardener extends Base {
             builtTreeCount++;
             // Add the closest tree to the built trees list
             builtTrees.add(new Tree(rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam())[0], rc.getRoundNum()));
-            rc.broadcast(Message.TOTAL_TREE_COUNT_CHANNEL, rc.readBroadcast(Message.TOTAL_TREE_COUNT_CHANNEL) + 1);
+            rc.broadcast(Message.TOTAL_TREE_COUNT_CHANNEL, numberOfTrees + 1);
             return true;
         }
         return false;
@@ -119,8 +119,7 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildScout() throws GameActionException {
-        int scoutCount = rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL);
-        if (scoutCount < 2) {
+        if (numberOfScouts < 2) {
             return true;
         }
         return false;
@@ -132,7 +131,7 @@ class Gardener extends Base {
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.SCOUT, dir)) {
                 rc.buildRobot(RobotType.SCOUT, dir);
-                rc.broadcast(Message.SCOUT_COUNT_CHANNEL, rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL) + 1);
+                rc.broadcast(Message.SCOUT_COUNT_CHANNEL, numberOfScouts + 1);
                 return true;
             }
         }
@@ -140,10 +139,8 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildLumberJack() throws GameActionException {
-        int lumberjackCount = rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL);
-        int treeCount = rc.readBroadcast(Message.TOTAL_TREE_COUNT_CHANNEL);
 
-        if ((!shouldBuildScout() && treeCount == 0) || (builtTreeCount > 3 && lumberjackCount < 10)) {
+        if ((!shouldBuildScout() && numberOfTrees == 0) || (builtTreeCount > 3 && numberOfLumberjacks < 10)) {
             return true;
         }
 
@@ -156,7 +153,7 @@ class Gardener extends Base {
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
                 rc.buildRobot(RobotType.LUMBERJACK, dir);
-                rc.broadcast(Message.LUMBERJACK_COUNT_CHANNEL, rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL) + 1);
+                rc.broadcast(Message.LUMBERJACK_COUNT_CHANNEL, numberOfLumberjacks + 1);
                 return true;
             }
         }
@@ -164,7 +161,7 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildSoldier() throws GameActionException {
-        return rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL) < 10 && !shouldBuildLumberJack();
+        return numberOfSoldiers < 10 && !shouldBuildLumberJack();
     }
 
     static boolean tryBuildSolider() throws GameActionException {
@@ -173,7 +170,7 @@ class Gardener extends Base {
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
                 rc.buildRobot(RobotType.SOLDIER, dir);
-                rc.broadcast(Message.SOLDIER_COUNT_CHANNEL, rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL) + 1);
+                rc.broadcast(Message.SOLDIER_COUNT_CHANNEL, numberOfSoldiers + 1);
                 return true;
             }
         }
