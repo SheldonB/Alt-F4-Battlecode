@@ -16,18 +16,20 @@ public class Scout extends Base {
         while (true) {
             try {
                 Base.update();
-
-                Pathing.tryDodgeBullet();
-
-                tryScoutRush();
-
-                Utils.collectBullets();
+                runRound();
                 Clock.yield();
             } catch (Exception e) {
                System.out.println(e.getMessage());
             }
         }
     }
+
+    static void runRound() throws GameActionException {
+        Pathing.tryDodgeBullet();
+        tryScoutRush();
+        Utils.collectBullets();
+    }
+
 
     static void tryScoutRush() throws GameActionException {
         if (targetLocation == null && rc.getRoundNum() < 100) {
@@ -79,7 +81,7 @@ public class Scout extends Base {
     }
 
     static void tryAttackTargetUnit() throws GameActionException {
-        if (rc.canSenseRobot(targetID) && rc.canFireSingleShot()) {
+        if (rc.canSenseRobot(targetID) && rc.canFireSingleShot() && numberOfLumberjacks > 0) {
             RobotInfo target = rc.senseRobot(targetID);
             if (target.getTeam() != rc.getTeam()) {
                 Direction dir = rc.getLocation().directionTo(target.getLocation());
@@ -129,6 +131,6 @@ public class Scout extends Base {
 
 
     static void wander() throws GameActionException {
-        Pathing.tryMove(Pathing.randomDirection());
+        Pathing.trySmartMove();
     }
 }
