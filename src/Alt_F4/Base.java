@@ -13,6 +13,8 @@ public class Base {
     static int numberOfGardeners;
     static int numberOfLumberjacks;
 
+    static int numberOfTrees;
+
     static MapLocation[] archonLocations;
     static MapLocation[] enemyArchonLocations;
 
@@ -61,6 +63,8 @@ public class Base {
         numberOfScouts = rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL);
         numberOfLumberjacks = rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL);
         numberOfSoldiers = rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL);
+
+        numberOfTrees = rc.readBroadcast(Message.TOTAL_TREE_COUNT_CHANNEL);
 
         tryUpdateEnemyArchonLocation();
         tryUpdateKnownMapEdges();
