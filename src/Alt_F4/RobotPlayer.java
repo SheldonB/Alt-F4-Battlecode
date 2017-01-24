@@ -21,6 +21,7 @@ public strictfp class RobotPlayer {
                     Scout.run();
                     break;
                 case SOLDIER:
+                    Soldier.run();
                     break;
                 case TANK:
                     break;
