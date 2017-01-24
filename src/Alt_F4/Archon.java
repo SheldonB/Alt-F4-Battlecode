@@ -20,10 +20,9 @@ public class Archon extends Base {
                     DetermineMapStrategy();
                 }
 
-                Debug.debug_drawSensorRadius();
-                Debug.debug_drawStrideRadius();
-
-                spawnGardener();
+                if (isGardenerSpawnRound()) {
+                    spawnGardener();
+                }
 
                 Utils.CheckWinConditions();
                 Clock.yield();
@@ -86,6 +85,10 @@ public class Archon extends Base {
 
         System.out.println("Archons decided to turtle");
         rc.broadcast(Message.STRATEGY_CHANNEL, Message.TURTLE_MESSAGE);
+    }
+
+    private static boolean isGardenerSpawnRound() {
+        return rc.getRoundNum() % 100 == 0 || rc.getRoundNum() == 1;
     }
 
     public static void spawnGardener() throws GameActionException {
