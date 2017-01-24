@@ -2,10 +2,43 @@ package Alt_F4;
 
 import battlecode.common.*;
 
-public class Pathing extends Base {
+import java.util.ArrayList;
+
+class Pathing extends Base {
+
+    static ArrayList<MapLocation> previousLocations = new ArrayList<>();
 
     static Direction randomDirection() {
         return new Direction((float)Math.random() * 2 * (float)Math.PI);
+    }
+
+    static boolean trySmartMove() throws GameActionException {
+        float[] toTry = {0, Utils.PI/4, -Utils.PI/4, Utils.PI/2, -Utils.PI/2, 3*Utils.PI/4, -3*Utils.PI/4, -Utils.PI};
+
+        for (int i = 0; i < toTry.length; i++) {
+            MapLocation newLoc = rc.getLocation().add(toTry[i]);
+
+            boolean hasMovedThereBefore = false;
+            for (MapLocation loc : previousLocations) {
+                if (newLoc.distanceTo(loc) < rc.getType().strideRadius * rc.getType().strideRadius) {
+                    hasMovedThereBefore = true;
+                    break;
+                }
+            }
+
+            if (!hasMovedThereBefore) {
+                if (!rc.hasMoved() && rc.canMove(newLoc)) {
+                    rc.move(newLoc);
+                    previousLocations.add(newLoc);
+
+                    if (previousLocations.size() > 10) {
+                        previousLocations.remove(0);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -94,13 +127,14 @@ public class Pathing extends Base {
         MapLocation leftGoal = rc.getLocation().add(towards.rotateLeftDegrees(90), rc.getType().bodyRadius);
         MapLocation rightGoal = rc.getLocation().add(towards.rotateRightDegrees(90), rc.getType().bodyRadius);
 
-        return(Pathing.tryMove(towards.rotateRightDegrees(90)) || Pathing.tryMove(towards.rotateLeftDegrees(90)));
+        return (Pathing.tryMove(towards.rotateRightDegrees(90)) || Pathing.tryMove(towards.rotateLeftDegrees(90)));
     }
 
     static void tryDodgeBullet() throws GameActionException {
         for (BulletInfo bullet : nearbyBullets) {
             if (willCollideWithMe(bullet)) {
                 trySideStep(bullet);
+                return;
             }
         }
     }
