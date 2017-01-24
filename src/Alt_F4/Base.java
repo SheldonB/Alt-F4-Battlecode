@@ -4,8 +4,14 @@ import battlecode.common.*;
 
 public class Base {
     static int robotID;
+
     static int numberOfArchons;
     static int numberOfEnemyArchons;
+
+    static int numberOfScouts;
+    static int numberOfSoldiers;
+    static int numberOfGardeners;
+    static int numberOfLumberjacks;
 
     static MapLocation[] archonLocations;
     static MapLocation[] enemyArchonLocations;
@@ -49,6 +55,12 @@ public class Base {
         visibleEnemyTrees = rc.senseNearbyTrees(rc.getType().sensorRadius, rc.getTeam().opponent());
 
         nearbyBullets = rc.senseNearbyBullets();
+
+        // Update the numbers of the units for the round.
+        numberOfGardeners = rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL);
+        numberOfScouts = rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL);
+        numberOfLumberjacks = rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL);
+        numberOfSoldiers = rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL);
 
         tryUpdateEnemyArchonLocation();
         tryUpdateKnownMapEdges();
