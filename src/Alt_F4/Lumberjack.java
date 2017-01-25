@@ -17,10 +17,13 @@ public class Lumberjack extends Base {
     }
 
     public static void clearTrees() throws GameActionException {
-        if (visibleFriendlyUnits.length > 0 && (rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) < GameConstants.LUMBERJACK_STRIKE_RADIUS + rc.getType().bodyRadius)) {
+        if (visibleFriendlyUnits.length > 0 && ((rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) - visibleFriendlyUnits[0].getType().bodyRadius) < GameConstants.LUMBERJACK_STRIKE_RADIUS)) {
             Direction awayFromFriendly = rc.getLocation().directionTo(visibleFriendlyUnits[0].getLocation());
             awayFromFriendly = awayFromFriendly.rotateRightDegrees(180);
             Pathing.tryMove(awayFromFriendly);
+        } else if (!rc.hasMoved() && nearbyBullets.length > 0) {
+            System.out.println("Dodging bullet brah!");
+            Pathing.tryDodgeBullet();
         } else if (visibleEnemyUnits.length > 0 && rc.getLocation().distanceTo(visibleEnemyUnits[0].getLocation()) > GameConstants.LUMBERJACK_STRIKE_RADIUS) {
             Direction toEnemy = rc.getLocation().directionTo(visibleEnemyUnits[0].getLocation());
             Pathing.tryMove(toEnemy);
@@ -33,7 +36,10 @@ public class Lumberjack extends Base {
             }
         } else {
             if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation())) {
-                rc.strike();
+                System.out.println(visibleFriendlyUnits[0].getID());
+                if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam()).length == 0) {
+                    rc.strike();
+                }
             } else {
                 Direction toTree = rc.getLocation().directionTo(visibleNeutralTrees[0].getLocation());
                 Pathing.tryMove(toTree);
@@ -41,7 +47,7 @@ public class Lumberjack extends Base {
         }
 
         if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam().opponent()).length > 0) {
-            if (rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) > GameConstants.LUMBERJACK_STRIKE_RADIUS + rc.getType().bodyRadius) {
+            if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam()).length == 0) {
                 rc.strike();
             }
         }
