@@ -54,8 +54,10 @@ class Lumberjack extends Base {
         Direction toTarget = rc.getLocation().directionTo(targetLocation);
         Pathing.tryMove(toTarget);
 
-        if (rc.getLocation().distanceTo(targetLocation) <= rc.getType().sensorRadius && visibleEnemyUnits.length == 0) {
-            rc.broadcast(Message.LUMBERJACK_GENERAL_CHANNEL_START, 0);
+        if (targetLocation != null) {
+            if (rc.getLocation().distanceTo(targetLocation) <= rc.getType().sensorRadius && visibleEnemyUnits.length == 0) {
+                rc.broadcast(Message.LUMBERJACK_GENERAL_CHANNEL_START, 0);
+            }
         }
     }
 
