@@ -110,6 +110,17 @@ public class Archon extends Base {
                 MapLocation newLoc = rc.getLocation().add(rc.getLocation().directionTo(robot.getLocation()).opposite());
                 if (!rc.hasMoved() && rc.canMove(newLoc)) {
                     rc.move(newLoc);
+                    return;
+                }
+            }
+        }
+
+        for (TreeInfo tree : visibleFriendlyTrees) {
+            if (rc.getLocation().distanceTo(tree.getLocation()) < GameConstants.BULLET_TREE_RADIUS * 4) {
+                MapLocation newLoc = rc.getLocation().add(rc.getLocation().directionTo(tree.getLocation()).opposite());
+                if (!rc.hasMoved() && rc.canMove(newLoc)) {
+                    rc.move(newLoc);
+                    return;
                 }
             }
         }
