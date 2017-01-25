@@ -21,20 +21,21 @@ public class Lumberjack extends Base {
         Arrays.sort(visibleNeutralTrees, (o1, o2) -> Float.compare(o1.getLocation().distanceTo(rc.getLocation()), o2.getLocation().distanceTo(rc.getLocation())));
         Arrays.sort(visibleFriendlyUnits, (o1, o2) -> Float.compare(o1.getLocation().distanceTo(rc.getLocation()), o2.getLocation().distanceTo(rc.getLocation())));
 
-        if (rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) < GameConstants.LUMBERJACK_STRIKE_RADIUS * 1.5) {
+        if (visibleFriendlyUnits.length > 0 && (rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) < GameConstants.LUMBERJACK_STRIKE_RADIUS * 1.3)) {
             Direction awayFromFriendly = rc.getLocation().directionTo(visibleFriendlyUnits[0].getLocation());
             awayFromFriendly = awayFromFriendly.rotateRightDegrees(180);
             Pathing.tryMove(awayFromFriendly);
+        } else if (visibleNeutralTrees.length == 0) {
+            Direction toEnemy = rc.getLocation().directionTo(enemyArchonLocations[0]);
+            Pathing.tryMove(toEnemy);
         } else {
-            if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam().opponent()).length > 0) {
+            if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam().opponent()).length > 0 && rc.canStrike()) {
                 rc.strike();
-            }
-            else if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation())) {
+            } else if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation()) && rc.canStrike()) {
                 rc.strike();
             } else {
                 Direction toTree = rc.getLocation().directionTo(visibleNeutralTrees[0].getLocation());
                 Pathing.tryMove(toTree);
-                rc.setIndicatorLine(rc.getLocation(), visibleNeutralTrees[0].getLocation(), 0, 240, 251);
             }
         }
     }
