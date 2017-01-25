@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 
 public class Archon extends Base {
-    private static final int GARDENERS_TO_SPAWN = 4;
+    private static final int GARDENERS_TO_SPAWN = 100;
     private static int spawnedUnitCount = 0;
 
     public static void run() throws GameActionException {
