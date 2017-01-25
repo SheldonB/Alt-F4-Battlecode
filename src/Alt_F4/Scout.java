@@ -108,6 +108,14 @@ public class Scout extends Base {
             //}
         }
 
+        for (TreeInfo tree : visibleNeutralTrees) {
+            if (tree.getContainedBullets() > 100) {
+                currentTarget = tree;
+                currentTargetLocation = tree.getLocation();
+                return;
+            }
+        }
+
         currentTarget = null;
         currentTargetLocation = null;
     }
