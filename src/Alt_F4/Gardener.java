@@ -18,6 +18,7 @@ class Gardener extends Base {
 
     private static boolean shouldSpawnLumberJackWhenCan = false;
     private static boolean shouldSpawnSoldierWhenCan = false;
+    private static boolean crampedLumberjack = false;
 
     private static List<Tree> builtTrees = new ArrayList<>();
 
@@ -38,30 +39,44 @@ class Gardener extends Base {
     }
 
     private static void runRound() throws GameActionException  {
-        if (shouldBuildScout()) {
-            tryBuildScout();
-        }
+        if (crampedMap()) {
+            if (!crampedLumberjack) {
+                tryBuildLumberJack();
+                crampedLumberjack = true;
+            }
+        } else {
+            if (shouldBuildScout()) {
+                tryBuildScout();
+            }
 
+            if (shouldBuildLumberJack() || shouldSpawnLumberJackWhenCan) {
+                tryBuildLumberJack();
+            }
 
-        if (shouldBuildLumberJack() || shouldSpawnLumberJackWhenCan) {
-            tryBuildLumberJack();
-        }
+            if (shouldBuildSoldier() || shouldSpawnSoldierWhenCan) {
+                tryBuildSolider();
+            }
 
-        if (shouldBuildSoldier() || shouldSpawnSoldierWhenCan) {
-            tryBuildSolider();
-        }
+            if (!hasFoundBuildLocation && !rc.hasMoved()) {
+                tryMoveToValidBuildLocation();
+            }
 
-        if (!hasFoundBuildLocation && !rc.hasMoved()) {
-            tryMoveToValidBuildLocation();
-        }
+            if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && numberOfLumberjacks > 0) {
+                tryPlantTree();
+            }
 
-        if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && numberOfLumberjacks > 0) {
-            tryPlantTree();
+            if (rc.canWater()) {
+                tryWaterTree();
+            }
         }
+    }
 
-        if (rc.canWater()) {
-            tryWaterTree();
+    private static boolean crampedMap() throws GameActionException {
+        System.out.println("I can sense " + visibleNeutralTrees.length + " trees!");
+        if (visibleNeutralTrees.length >= 5 && rc.getRoundNum() <= 150) {
+            return true;
         }
+        return false;
     }
 
     private static boolean tryMoveToValidBuildLocation() throws GameActionException {
