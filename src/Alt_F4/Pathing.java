@@ -11,12 +11,41 @@ class Pathing extends Base {
     static Direction randomDirection() {
         return new Direction((float)Math.random() * 2 * (float)Math.PI);
     }
-
+    /*
     static boolean trySmartMove() throws GameActionException {
         float[] toTry = {0, Utils.PI/4, -Utils.PI/4, Utils.PI/2, -Utils.PI/2, 3*Utils.PI/4, -3*Utils.PI/4, -Utils.PI};
 
         for (int i = 0; i < toTry.length; i++) {
             MapLocation newLoc = rc.getLocation().add(toTry[i]);
+
+            boolean hasMovedThereBefore = false;
+            for (MapLocation loc : previousLocations) {
+                if (newLoc.distanceTo(loc) < rc.getType().strideRadius * rc.getType().strideRadius) {
+                    hasMovedThereBefore = true;
+                    break;
+                }
+            }
+
+            if (!hasMovedThereBefore) {
+                if (!rc.hasMoved() && rc.canMove(newLoc)) {
+                    rc.move(newLoc);
+                    previousLocations.add(newLoc);
+
+                    if (previousLocations.size() > 10) {
+                        previousLocations.remove(0);
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    */
+
+    static boolean tryRandomSmartMove() throws GameActionException {
+        while(!rc.hasMoved()) {
+            Direction dir = randomDirection();
+            MapLocation newLoc = rc.getLocation().add(dir);
 
             boolean hasMovedThereBefore = false;
             for (MapLocation loc : previousLocations) {
@@ -66,6 +95,9 @@ class Pathing extends Base {
      * @throws GameActionException
      */
     static boolean tryMove(Direction dir, float degreeOffset, int checksPerSide, float distance) throws GameActionException {
+        if(rc.hasMoved())  {
+            return false;
+        }
 
         // First, try intended direction
         if (rc.canMove(dir)) {
