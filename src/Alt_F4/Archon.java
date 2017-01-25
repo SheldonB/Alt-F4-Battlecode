@@ -8,6 +8,7 @@ import java.util.Arrays;
 public class Archon extends Base {
     private static final int GARDENERS_TO_SPAWN = 100;
     private static int spawnedUnitCount = 0;
+    private static boolean shouldBuildGardenerWhenCan = false;
 
     public static void run() throws GameActionException {
         System.out.println("Archon Spawned");
@@ -21,7 +22,7 @@ public class Archon extends Base {
                     DetermineMapStrategy();
                 }
 
-                if (isGardenerSpawnRound()) {
+                if (shouldBuildGardener() || shouldBuildGardenerWhenCan) {
                     spawnGardener();
                 }
 
@@ -100,6 +101,7 @@ public class Archon extends Base {
 
         if (spawnedUnitCount < GARDENERS_TO_SPAWN && Base.trySpawnUnit(buildDirection, RobotType.GARDENER)) {
             rc.broadcast(Message.GARDENER_COUNT_CHANNEL, rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL));
+            shouldBuildGardenerWhenCan = false;
             spawnedUnitCount++;
         }
     }
@@ -110,19 +112,19 @@ public class Archon extends Base {
                 MapLocation newLoc = rc.getLocation().add(rc.getLocation().directionTo(robot.getLocation()).opposite());
                 if (!rc.hasMoved() && rc.canMove(newLoc)) {
                     rc.move(newLoc);
-                    return;
                 }
             }
+        }
+    }
+
+    private static boolean shouldBuildGardener() throws GameActionException {
+        if (isGardenerSpawnRound()) {
+            if (rc.getTeamBullets() < RobotType.GARDENER.bulletCost) {
+                shouldBuildGardenerWhenCan = true;
+            }
+            return true;
         }
 
-        for (TreeInfo tree : visibleFriendlyTrees) {
-            if (rc.getLocation().distanceTo(tree.getLocation()) < GameConstants.BULLET_TREE_RADIUS * 4) {
-                MapLocation newLoc = rc.getLocation().add(rc.getLocation().directionTo(tree.getLocation()).opposite());
-                if (!rc.hasMoved() && rc.canMove(newLoc)) {
-                    rc.move(newLoc);
-                    return;
-                }
-            }
-        }
+        return false;
     }
 }
