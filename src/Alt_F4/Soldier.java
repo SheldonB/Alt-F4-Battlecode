@@ -19,12 +19,12 @@ class Soldier extends Base {
 
                 target = determineTarget();
 
-                if (determineTarget() != null) {
-                    tryFireOnTarget();
-                }
-
                 if (!rc.hasMoved()) {
                     Pathing.tryMove(Pathing.randomDirection());
+                }
+
+                if (determineTarget() != null) {
+                    tryFireOnTarget();
                 }
 
                 Clock.yield();
@@ -68,8 +68,8 @@ class Soldier extends Base {
     }
 
     static boolean tryFireOnTarget() throws GameActionException {
-        if (rc.canFireSingleShot()) {
-            rc.fireSingleShot(rc.getLocation().directionTo(target.getLocation()));
+        if (rc.canFirePentadShot()) {
+            rc.firePentadShot(rc.getLocation().directionTo(target.getLocation()));
             System.out.println("Firing bullet");
             return true;
         }
