@@ -14,6 +14,7 @@ public class Archon extends Base {
 
         while (true) {
             try {
+                Base.update();
                 if (rc.getRoundNum() == 1) {
                     VoteMapStrategy();
                 } else if (rc.getRoundNum() == 2) {
@@ -23,6 +24,8 @@ public class Archon extends Base {
                 if (isGardenerSpawnRound()) {
                     spawnGardener();
                 }
+
+                tryMaintainDistance();
 
                 Utils.CheckWinConditions();
                 Clock.yield();
@@ -98,6 +101,17 @@ public class Archon extends Base {
         if (spawnedUnitCount < GARDENERS_TO_SPAWN && Base.trySpawnUnit(buildDirection, RobotType.GARDENER)) {
             rc.broadcast(Message.GARDENER_COUNT_CHANNEL, rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL));
             spawnedUnitCount++;
+        }
+    }
+
+    private static void tryMaintainDistance() throws GameActionException {
+        for (RobotInfo robot : visibleFriendlyUnits) {
+            if (rc.getLocation().distanceTo(robot.getLocation()) < GameConstants.BULLET_TREE_RADIUS * 4) {
+                MapLocation newLoc = rc.getLocation().add(rc.getLocation().directionTo(robot.getLocation()).opposite());
+                if (!rc.hasMoved() && rc.canMove(newLoc)) {
+                    rc.move(newLoc);
+                }
+            }
         }
     }
 }
