@@ -21,7 +21,7 @@ public class Lumberjack extends Base {
         Arrays.sort(visibleNeutralTrees, (o1, o2) -> Float.compare(o1.getLocation().distanceTo(rc.getLocation()), o2.getLocation().distanceTo(rc.getLocation())));
         Arrays.sort(visibleFriendlyUnits, (o1, o2) -> Float.compare(o1.getLocation().distanceTo(rc.getLocation()), o2.getLocation().distanceTo(rc.getLocation())));
 
-        if (visibleFriendlyUnits.length > 0 && (rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) < GameConstants.LUMBERJACK_STRIKE_RADIUS * 1.3)) {
+        if (visibleFriendlyUnits.length > 0 && (rc.getLocation().distanceTo(visibleFriendlyUnits[0].getLocation()) < GameConstants.LUMBERJACK_STRIKE_RADIUS * 1.5)) {
             Direction awayFromFriendly = rc.getLocation().directionTo(visibleFriendlyUnits[0].getLocation());
             awayFromFriendly = awayFromFriendly.rotateRightDegrees(180);
             Pathing.tryMove(awayFromFriendly);
