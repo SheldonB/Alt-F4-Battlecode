@@ -84,7 +84,7 @@ public class Scout extends Base {
     }
 
     static void setPriorityTarget() throws GameActionException {
-        if (rc.getRoundNum() < 100) {
+        if (!hasReachedInitialLocation) {
             currentTargetLocation = determineRushLocation();
             return;
         }
@@ -109,7 +109,7 @@ public class Scout extends Base {
         }
 
         for (TreeInfo tree : visibleNeutralTrees) {
-            if (tree.getContainedBullets() > 100) {
+            if (tree.getContainedBullets() > 0) {
                 currentTarget = tree;
                 currentTargetLocation = tree.getLocation();
                 return;
