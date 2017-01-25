@@ -159,7 +159,7 @@ class Gardener extends Base {
 
     static boolean shouldBuildLumberJack() throws GameActionException {
 
-        if ((!shouldBuildScout() && numberOfTrees == 0) || (builtTreeCount > 3 && numberOfLumberjacks < 10) || isLumberJackSpawnRound()) {
+        if (((!shouldBuildScout() && numberOfTrees == 0) || (builtTreeCount > 3 && numberOfLumberjacks < 10) || isLumberJackSpawnRound()) && numberOfLumberjacks < 100) {
             if (rc.getTeamBullets() < RobotType.LUMBERJACK.bulletCost) {
                 shouldSpawnLumberJackWhenCan = true;
             }
