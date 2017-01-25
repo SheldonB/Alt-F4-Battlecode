@@ -8,8 +8,10 @@ import java.util.ArrayList;
 
 class Gardener extends Base {
 
+    private static Direction movingDirection;
+
     private static final int TREES_TO_SPAWN = 5;
-    private static final int TIMES_TO_TRY_BEFORE_SETTLING = 100;
+    private static final int TIMES_TO_TRY_BEFORE_SETTLING = 200;
 
     private static int builtTreeCount;
     private static int timesTriedToBuild;
@@ -27,7 +29,7 @@ class Gardener extends Base {
 
         while (true) {
            try {
-               Debug.debug_drawSensorRadius();
+               //Debug.debug_drawSensorRadius();
                Base.update();
                Utils.CheckWinConditions();
                runRound();
@@ -72,7 +74,6 @@ class Gardener extends Base {
     }
 
     private static boolean crampedMap() throws GameActionException {
-        System.out.println("I can sense " + visibleNeutralTrees.length + " trees!");
         if (visibleNeutralTrees.length >= 5 && rc.getRoundNum() <= 150) {
             return true;
         }
@@ -81,22 +82,26 @@ class Gardener extends Base {
 
     private static boolean tryMoveToValidBuildLocation() throws GameActionException {
         if (!isValidBuildLocation(rc.getLocation())) {
-            timesTriedToBuild++;
-            return Pathing.tryRandomSmartMove();
-            //return Pathing.tryMove(Pathing.randomDirection());
-            //return Pathing.trySmartMove();
+            if (movingDirection == null) {
+                movingDirection = rc.getLocation().directionTo(enemyArchonLocations[0]);
+            }
+
+            if (!rc.canMove(movingDirection)) {
+                movingDirection = Pathing.randomDirection();
+            }
+
+            return Pathing.tryMove(movingDirection);
         }
         hasFoundBuildLocation = true;
         return false;
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
-        return !rc.isCircleOccupiedExceptByThisRobot(loc, rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 4)) || timesTriedToBuild > TIMES_TO_TRY_BEFORE_SETTLING;
+        return rc.senseNearbyTrees(rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 4)).length == 0 || timesTriedToBuild > TIMES_TO_TRY_BEFORE_SETTLING;
     }
 
     private static boolean tryPlantTree() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
-
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
         for (Direction dir : directions) {
             if (tryPlantTree(dir)) {
                 return true;
@@ -131,20 +136,6 @@ class Gardener extends Base {
         return false;
     }
 
-    static boolean shouldBuildUnit() throws GameActionException {
-        return shouldBuildScout() || shouldBuildLumberJack(); //|| shouldBuildScout();
-    }
-
-    static void tryBuildPriorityUnit() throws GameActionException {
-        if (shouldBuildScout()) {
-            tryBuildScout();
-        } else if (shouldBuildLumberJack()) {
-            tryBuildLumberJack();
-        } else if (shouldBuildSoldier()) {
-            tryBuildSolider();
-        }
-    }
-
     static boolean shouldBuildScout() throws GameActionException {
         if (numberOfScouts < 2) {
             return true;
@@ -153,7 +144,7 @@ class Gardener extends Base {
     }
 
     static boolean tryBuildScout() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
 
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.SCOUT, dir)) {
@@ -178,7 +169,7 @@ class Gardener extends Base {
     }
 
     static boolean tryBuildLumberJack() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
 
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
@@ -202,7 +193,7 @@ class Gardener extends Base {
     }
 
     static boolean tryBuildSolider() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 6);
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
 
         for (Direction dir : directions) {
             if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
