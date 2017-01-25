@@ -6,7 +6,7 @@ class Soldier extends Base {
     private static BodyInfo target;
 
     static void run() throws GameActionException {
-        System.out.println("Solder has spawned.");
+        System.out.println("Soldier has spawned.");
 
         while (true) {
             try {
@@ -40,6 +40,13 @@ class Soldier extends Base {
             if(!willShotCollideWithBody(enemyRobot)) {
                 rc.setIndicatorLine(rc.getLocation(), enemyRobot.getLocation(), 0, 255, 0);
                 return enemyRobot;
+            }
+        }
+
+        for (TreeInfo tree : visibleNeutralTrees) {
+            if(!willShotCollideWithBody(tree)) {
+                rc.setIndicatorLine(rc.getLocation(), tree.getLocation(), 0, 255, 0);
+                return tree;
             }
         }
         return null;
