@@ -22,7 +22,6 @@ public class Lumberjack extends Base {
             awayFromFriendly = awayFromFriendly.rotateRightDegrees(180);
             Pathing.tryMove(awayFromFriendly);
         } else if (!rc.hasMoved() && nearbyBullets.length > 0) {
-            System.out.println("Dodging bullet brah!");
             Pathing.tryDodgeBullet();
         } else if (visibleEnemyUnits.length > 0 && rc.getLocation().distanceTo(visibleEnemyUnits[0].getLocation()) > GameConstants.LUMBERJACK_STRIKE_RADIUS) {
             Direction toEnemy = rc.getLocation().directionTo(visibleEnemyUnits[0].getLocation());
@@ -36,7 +35,6 @@ public class Lumberjack extends Base {
             }
         } else {
             if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation())) {
-                System.out.println(visibleFriendlyUnits[0].getID());
                 if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam()).length == 0) {
                     rc.strike();
                 }
