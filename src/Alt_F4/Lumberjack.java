@@ -26,7 +26,10 @@ public class Lumberjack extends Base {
             awayFromFriendly = awayFromFriendly.rotateRightDegrees(180);
             Pathing.tryMove(awayFromFriendly);
         } else {
-            if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation())) {
+            if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam().opponent()).length > 0) {
+                rc.strike();
+            }
+            else if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation())) {
                 rc.strike();
             } else {
                 Direction toTree = rc.getLocation().directionTo(visibleNeutralTrees[0].getLocation());
