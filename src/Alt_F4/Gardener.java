@@ -16,7 +16,8 @@ class Gardener extends Base {
 
     private static boolean hasFoundBuildLocation = false;
 
-    private static Direction exploringDirection;
+    private static boolean shouldSpawnLumberJackWhenCan = false;
+    private static boolean shouldSpawnSoldierWhenCan = false;
 
     private static List<Tree> builtTrees = new ArrayList<>();
 
@@ -41,8 +42,13 @@ class Gardener extends Base {
             tryBuildScout();
         }
 
-        if (shouldBuildLumberJack())  {
+
+        if (shouldBuildLumberJack() || shouldSpawnLumberJackWhenCan) {
             tryBuildLumberJack();
+        }
+
+        if (shouldBuildSoldier() || shouldSpawnSoldierWhenCan) {
+            tryBuildSolider();
         }
 
         if (!hasFoundBuildLocation && !rc.hasMoved()) {
@@ -146,7 +152,10 @@ class Gardener extends Base {
 
     static boolean shouldBuildLumberJack() throws GameActionException {
 
-        if ((!shouldBuildScout() && numberOfTrees == 0) || (builtTreeCount > 3 && numberOfLumberjacks < 10)) {
+        if ((!shouldBuildScout() && numberOfTrees == 0) || (builtTreeCount > 3 && numberOfLumberjacks < 10) || isLumberJackSpawnRound()) {
+            if (rc.getTeamBullets() < RobotType.LUMBERJACK.bulletCost) {
+                shouldSpawnLumberJackWhenCan = true;
+            }
             return true;
         }
 
@@ -160,6 +169,7 @@ class Gardener extends Base {
             if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
                 rc.buildRobot(RobotType.LUMBERJACK, dir);
                 rc.broadcast(Message.LUMBERJACK_COUNT_CHANNEL, numberOfLumberjacks + 1);
+                shouldSpawnLumberJackWhenCan = false;
                 return true;
             }
         }
@@ -167,7 +177,13 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildSoldier() throws GameActionException {
-        return numberOfSoldiers < 10 && !shouldBuildLumberJack();
+        if (isSoldierSpawnRound()) {
+            if (rc.getTeamBullets() < RobotType.SOLDIER.bulletCost) {
+                shouldSpawnSoldierWhenCan = true;
+            }
+            return true;
+        }
+        return false;
     }
 
     static boolean tryBuildSolider() throws GameActionException {
@@ -177,9 +193,18 @@ class Gardener extends Base {
             if (rc.canBuildRobot(RobotType.SOLDIER, dir)) {
                 rc.buildRobot(RobotType.SOLDIER, dir);
                 rc.broadcast(Message.SOLDIER_COUNT_CHANNEL, numberOfSoldiers + 1);
+                shouldSpawnSoldierWhenCan = false;
                 return true;
             }
         }
         return false;
+    }
+
+    static boolean isLumberJackSpawnRound() {
+        return rc.getRoundNum() % 50 == 0;
+    }
+
+    static boolean isSoldierSpawnRound() {
+        return rc.getRoundNum() % 101 == 0;
     }
 }
