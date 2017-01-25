@@ -68,8 +68,8 @@ class Soldier extends Base {
     }
 
     static boolean tryFireOnTarget() throws GameActionException {
-        if (rc.canFirePentadShot()) {
-            rc.firePentadShot(rc.getLocation().directionTo(target.getLocation()));
+        if (rc.canFireSingleShot()) {
+            rc.fireSingleShot(rc.getLocation().directionTo(target.getLocation()));
             System.out.println("Firing bullet");
             return true;
         }
