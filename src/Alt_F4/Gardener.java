@@ -9,10 +9,14 @@ import java.util.ArrayList;
 class Gardener extends Base {
 
     private static final int TREES_TO_SPAWN = 5;
+    private static final int TIMES_TO_TRY_BEFORE_SETTLING = 100;
 
     private static int builtTreeCount;
+    private static int timesTriedToBuild;
 
     private static boolean hasFoundBuildLocation = false;
+
+    private static Direction exploringDirection;
 
     private static List<Tree> builtTrees = new ArrayList<>();
 
@@ -21,6 +25,7 @@ class Gardener extends Base {
 
         while (true) {
            try {
+               Debug.debug_drawSensorRadius();
                Base.update();
                Utils.CheckWinConditions();
                runRound();
@@ -55,16 +60,17 @@ class Gardener extends Base {
 
     private static boolean tryMoveToValidBuildLocation() throws GameActionException {
         if (!isValidBuildLocation(rc.getLocation())) {
+            timesTriedToBuild++;
+            return Pathing.tryRandomSmartMove();
             //return Pathing.tryMove(Pathing.randomDirection());
-            return Pathing.trySmartMove();
+            //return Pathing.trySmartMove();
         }
-
         hasFoundBuildLocation = true;
         return false;
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
-        return !rc.isCircleOccupiedExceptByThisRobot(loc, rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2));
+        return !rc.isCircleOccupiedExceptByThisRobot(loc, rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 4)) || timesTriedToBuild > TIMES_TO_TRY_BEFORE_SETTLING;
     }
 
     private static boolean tryPlantTree() throws GameActionException {
