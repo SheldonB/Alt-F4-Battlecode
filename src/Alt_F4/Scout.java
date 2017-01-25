@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 import java.util.Arrays;
 
-public class Scout extends Base {
+class Scout extends Base {
     private static BodyInfo currentTarget;
     private static MapLocation currentTargetLocation;
 
@@ -12,7 +12,7 @@ public class Scout extends Base {
 
     private static boolean hasReachedInitialLocation = false;
 
-    public static void run() throws GameActionException {
+    static void run() throws GameActionException {
         int strategy = rc.readBroadcast(Message.STRATEGY_CHANNEL);
 
         while (true) {
@@ -26,7 +26,7 @@ public class Scout extends Base {
         }
     }
 
-    static void runRound() throws GameActionException {
+    private static void runRound() throws GameActionException {
         Pathing.tryDodgeBullet();
         setPriorityTarget();
 
@@ -49,7 +49,7 @@ public class Scout extends Base {
         Utils.collectBullets();
     }
 
-    static boolean tryHideInTree() throws GameActionException {
+    private static boolean tryHideInTree() throws GameActionException {
         TreeInfo[] nearbyTrees = rc.senseNearbyTrees();
         Arrays.sort(nearbyTrees, (o1, o2) -> Float.compare(o1.getLocation().distanceTo(currentTargetLocation), o2.getLocation().distanceTo(currentTargetLocation)));
 
@@ -66,14 +66,14 @@ public class Scout extends Base {
         return false;
     }
 
-    static boolean tryMoveToTarget() throws GameActionException {
+    private static boolean tryMoveToTarget() throws GameActionException {
         if (!rc.hasMoved() && rc.getLocation().distanceTo(currentTargetLocation) > GameConstants.LUMBERJACK_STRIKE_RADIUS * 2) {
             Pathing.tryMove(rc.getLocation().directionTo(currentTargetLocation));
         }
         return false;
     }
 
-    static void tryAttackTarget() throws GameActionException {
+    private static void tryAttackTarget() throws GameActionException {
         if (rc.canSenseRobot(currentTarget.getID()) && rc.canFireSingleShot() && numberOfLumberjacks > 0) {
             RobotInfo target = rc.senseRobot(currentTarget.getID());
             if (target.getTeam() != rc.getTeam()) {
@@ -83,7 +83,7 @@ public class Scout extends Base {
         }
     }
 
-    static void setPriorityTarget() throws GameActionException {
+    private static void setPriorityTarget() throws GameActionException {
         if (!hasReachedInitialLocation) {
             currentTargetLocation = determineRushLocation();
             return;
@@ -95,17 +95,6 @@ public class Scout extends Base {
                 currentTargetLocation = robot.getLocation();
                 return;
             }
-            //} else if (robot.getType() == RobotType.SCOUT) {
-            //    return robot;
-            //} else if (robot.getType() == RobotType.SOLDIER) {
-            //    return robot;
-            //} else if (robot.getType() == RobotType.LUMBERJACK) {
-            //    return robot;
-            //} else if (robot.getType() == RobotType.ARCHON) {
-            //    return robot;
-            //} else if (robot.getType() == RobotType.TANK) {
-            //    return robot;
-            //}
         }
 
         for (TreeInfo tree : visibleNeutralTrees) {
@@ -120,7 +109,7 @@ public class Scout extends Base {
         currentTargetLocation = null;
     }
 
-    static MapLocation determineRushLocation() throws GameActionException {
+    private static MapLocation determineRushLocation() throws GameActionException {
         MapLocation closestArchonLocation = enemyArchonLocations[0];
         for (MapLocation loc : enemyArchonLocations) {
             if (rc.getLocation().distanceTo(loc) < rc.getLocation().distanceTo(closestArchonLocation)) {
@@ -131,7 +120,7 @@ public class Scout extends Base {
         return closestArchonLocation;
     }
 
-    static void explore() throws GameActionException {
+    private static void explore() throws GameActionException {
         if (exploringDirection == null) {
             exploringDirection = Pathing.randomDirection();
         }

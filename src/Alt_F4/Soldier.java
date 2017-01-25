@@ -35,7 +35,7 @@ class Soldier extends Base {
     }
 
 
-    static BodyInfo determineTarget() throws GameActionException {
+    private static BodyInfo determineTarget() throws GameActionException {
         for (RobotInfo enemyRobot : visibleEnemyUnits) {
             if(!willShotCollideWithBody(enemyRobot)) {
                 rc.setIndicatorLine(rc.getLocation(), enemyRobot.getLocation(), 0, 255, 0);
@@ -52,7 +52,7 @@ class Soldier extends Base {
         return null;
     }
 
-    static boolean willShotCollideWithBody(BodyInfo robotTarget) {
+    private static boolean willShotCollideWithBody(BodyInfo robotTarget) {
         Vector toEnemy = new Vector(rc.getLocation(), robotTarget.getLocation());
 
         for (RobotInfo friendlyRobot : visibleFriendlyUnits) {
@@ -67,7 +67,7 @@ class Soldier extends Base {
         return false;
     }
 
-    static boolean tryFireOnTarget() throws GameActionException {
+    private static boolean tryFireOnTarget() throws GameActionException {
         if (rc.canFireSingleShot()) {
             rc.fireSingleShot(rc.getLocation().directionTo(target.getLocation()));
             System.out.println("Firing bullet");
