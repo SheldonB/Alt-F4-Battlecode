@@ -97,7 +97,8 @@ class Gardener extends Base {
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
-        return rc.senseNearbyTrees(rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 4)).length == 0 || timesTriedToBuild > TIMES_TO_TRY_BEFORE_SETTLING;
+        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 4);
+        return rc.senseNearbyTrees(circleRadius).length == 0 && rc.onTheMap(loc, circleRadius);
     }
 
     private static boolean tryPlantTree() throws GameActionException {
@@ -211,6 +212,6 @@ class Gardener extends Base {
     }
 
     static boolean isSoldierSpawnRound() {
-        return rc.getRoundNum() % 101 == 0;
+        return rc.getRoundNum() % 75 == 0;
     }
 }
