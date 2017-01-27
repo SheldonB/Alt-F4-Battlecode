@@ -6,7 +6,8 @@ import java.util.Arrays;
 
 
 public class Archon extends Base {
-    private static final int GARDENERS_TO_SPAWN = 100;
+    private static final int GARDENERS_TO_SPAWN = 5;
+
     private static int spawnedUnitCount = 0;
     private static boolean shouldBuildGardenerWhenCan = false;
 
@@ -92,7 +93,7 @@ public class Archon extends Base {
     }
 
     private static boolean isGardenerSpawnRound() {
-        return rc.getRoundNum() % 100 == 0 || rc.getRoundNum() == 1;
+        return rc.getRoundNum() % 200 == 0 || rc.getRoundNum() == 1;
     }
 
     public static void spawnGardener() throws GameActionException {
@@ -118,7 +119,7 @@ public class Archon extends Base {
     }
 
     private static boolean shouldBuildGardener() throws GameActionException {
-        if (isGardenerSpawnRound()) {
+        if (isGardenerSpawnRound() && numberOfGardeners < GARDENERS_TO_SPAWN) {
             if (rc.getTeamBullets() < RobotType.GARDENER.bulletCost) {
                 shouldBuildGardenerWhenCan = true;
             }
