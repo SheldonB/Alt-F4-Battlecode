@@ -11,19 +11,19 @@ public class Message {
     public static final int ARCHON_GENERAL_CHANNEL_END = 999;
 
     public static final int GARDENER_GENERAL_CHANNEL_START = 1000;
-    public static final int GARDENER_GENERAL_CHANNEL_END = 1999;
+    public static final int GARDENER_GENERAL_CHANNEL_END = 1998;
 
     public static final int SCOUT_GENERAL_CHANNEL_START = 2000;
-    public static final int SCOUT_GENERAL_CHANNEL_END = 2999;
+    public static final int SCOUT_GENERAL_CHANNEL_END = 2997;
 
     public static final int LUMBERJACK_GENERAL_CHANNEL_START = 3000;
-    public static final int LUMBERJACK_GENERAL_CHANNEL_END = 3999;
+    public static final int LUMBERJACK_GENERAL_CHANNEL_END = 3996;
 
     public static final int SOLDIER_GENERAL_CHANNEL_START = 4000;
-    public static final int SOLDIER_GENERAL_CHANNEL_END = 4999;
+    public static final int SOLDIER_GENERAL_CHANNEL_END = 4995;
 
     public static final int TANK_GENERAL_CHANNEL_START = 5000;
-    public static final int TANK_GENERAl_CHANNEL_END = 5999;
+    public static final int TANK_GENERAL_CHANNEL_END = 5994;
 
     public static final int STRATEGY_CHANNEL = 6000;
 
