@@ -4,9 +4,7 @@ import battlecode.common.*;
 
 class Soldier extends Base {
     private static Direction movingDirection;
-    private static boolean hasMovedToInitalLocation = false;
 
-    private static BodyInfo target;
     private static MapLocation targetLocation;
 
 
@@ -17,33 +15,24 @@ class Soldier extends Base {
             try {
                 Utils.CheckWinConditions();
                 Base.update();
-                Debug.debug_drawSensorRadius();
+
                 if (!rc.hasMoved() && nearbyBullets.length > 0) {
                     Pathing.tryDodgeBullet();
                 }
 
                 tryDetermineLocation();
                 tryFireOnEnemy();
+
                 if (!rc.hasAttacked() && targetLocation != null) {
                     tryMoveToLocation();
+                } else if(rc.hasAttacked() && targetLocation != null) {
+                    Pathing.tryMove(rc.getLocation().directionTo(targetLocation).opposite());
                 } else {
                     wander();
-                }
-                /*
-
-                if (shouldBeAggressive()) {
-                    tryBeAggressive();
+                    tryClearTrees();
                 }
 
-                if (!rc.hasMoved()) {
-                    Pathing.tryMove(Pathing.randomDirection());
-                }
-
-                //if (determineTarget() != null) {
-                //    tryFireOnTarget();
-                //}
-                */
-
+                Utils.collectBullets();
                 Clock.yield();
             } catch (Exception e) {
                 System.out.println(e);
@@ -58,16 +47,11 @@ class Soldier extends Base {
         }
 
         if (rc.getRoundNum() < 100) {
-            targetLocation = enemyArchonLocations[0];
+            targetLocation = Utils.closestEnemyArchonLocation();
             return false;
         }
 
-
-        if(visibleNeutralTrees.length > 0) {
-            targetLocation = visibleNeutralTrees[0].getLocation();
-            return true;
-        }
-
+        targetLocation = null;
         return false;
     }
 
@@ -78,11 +62,6 @@ class Soldier extends Base {
             }
         }
 
-        for (TreeInfo tree : visibleNeutralTrees) {
-            if (!willShotCollideWithBody(tree)) {
-                return tryFireOnTarget(tree.getLocation());
-            }
-        }
         return false;
     }
 
@@ -91,23 +70,6 @@ class Soldier extends Base {
             return Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
         }
         return false;
-    }
-
-    private static BodyInfo tryDetermineTarget() throws GameActionException {
-        for (RobotInfo enemyRobot : visibleEnemyUnits) {
-            return enemyRobot;
-        }
-
-        if (rc.getRoundNum() < 100) {
-        }
-
-        for (TreeInfo tree : visibleNeutralTrees) {
-            if(!willShotCollideWithBody(tree)) {
-                return tree;
-            }
-        }
-
-        return null;
     }
 
     private static boolean willShotCollideWithBody(BodyInfo robotTarget) {
@@ -140,13 +102,29 @@ class Soldier extends Base {
         return false;
     }
 
+    private static boolean tryClearTrees() throws GameActionException {
+        TreeInfo[] treesInStrideRadius = rc.senseNearbyTrees(rc.getLocation(), rc.getType().bodyRadius + 1, Team.NEUTRAL);
+        if (treesInStrideRadius.length >= 3) {
+            if (rc.canFirePentadShot()) {
+                Direction dir = rc.getLocation().directionTo(treesInStrideRadius[0].getLocation());
+                rc.firePentadShot(dir);
+
+                if(!rc.hasMoved()) {
+                    Pathing.tryMove(dir.opposite());
+                }
+
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static boolean shouldFirePentadShot(MapLocation loc) {
+        int robotsInPentadRange = 0;
+
         Direction firingDirection = rc.getLocation().directionTo(loc);
         Direction directionRangeRight = firingDirection.rotateRightDegrees(30);
         Direction directionRangeLeft = firingDirection.rotateLeftDegrees(30);
-        rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(directionRangeLeft, 5), 255, 0, 0);
-        rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(directionRangeRight, 5), 255, 0, 0);
-        int robotsInPentadRange = 0;
 
         for (RobotInfo robot : visibleEnemyUnits) {
             Direction robotDirection = rc.getLocation().directionTo(robot.getLocation());
@@ -157,44 +135,6 @@ class Soldier extends Base {
         }
 
         return robotsInPentadRange > 1;
-    }
-
-    private static boolean shouldBeAggressive() {
-        return numberOfSoldiers >= Constants.SOLDIERS_FOR_AGGRESSION;
-    }
-
-    private static void tryBeAggressive() throws GameActionException {
-        MapLocation loc = null;
-
-        if (visibleEnemyUnits.length > 0) {
-            loc = visibleEnemyUnits[0].getLocation();
-        }
-
-        if (loc != null && !rc.hasAttacked() && rc.getLocation().distanceTo(loc) <= GameConstants.LUMBERJACK_STRIKE_RADIUS * 2) {
-            tryFireOnTarget(loc);
-        }
-
-        if (loc != null && rc.hasAttacked() && !rc.hasMoved()) {
-            Pathing.tryMove(rc.getLocation().directionTo(loc).opposite());
-        }
-
-        if (loc != null && !rc.hasMoved()) {
-            Pathing.tryMove(rc.getLocation().directionTo(loc));
-        } else if(loc == null && !rc.hasMoved()) {
-            if (rc.getRoundNum() < 200 && movingDirection == null)  {
-                movingDirection = rc.getLocation().directionTo(enemyArchonLocations[0]);
-            }
-
-            if (movingDirection == null && !hasMovedToInitalLocation) {
-                movingDirection = Pathing.randomDirection();
-            }
-
-            if (!rc.canMove(movingDirection) && !hasMovedToInitalLocation) {
-                movingDirection = Pathing.randomDirection();
-            }
-
-            Pathing.tryMove(movingDirection);
-        }
     }
 
     private static void wander() throws GameActionException {
