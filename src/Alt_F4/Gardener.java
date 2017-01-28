@@ -28,10 +28,10 @@ class Gardener extends Base {
 
         while (true) {
            try {
-               //Debug.debug_drawSensorRadius();
                Base.update();
                Utils.CheckWinConditions();
                runRound();
+               Utils.collectBullets();
                Clock.yield();
            } catch (Exception e) {
                System.out.println(e.getMessage());
@@ -40,52 +40,50 @@ class Gardener extends Base {
     }
 
     private static void runRound() throws GameActionException  {
-        if (canRush()) {
+
+        // Do the initial build order in the first 50 rounds
+        if (rc.getRoundNum() < 100) {
+            int initialBuild = rc.readBroadcast(Message.STRATEGY_CHANNEL);
+
+            if (crampedMap() && numberOfLumberjacks < 2)  {
+                tryBuildLumberJack();
+            }
+
+            if (initialBuild == Message.SCOUT_HARRASS_MESSAGE && numberOfScouts < 2) {
+                tryBuildScout();
+            } else if (initialBuild == Message.SOLDIER_HARRASS_MESSAGE && numberOfSoldiers < 2) {
+                tryBuildSolider();
+            }  else if (numberOfLumberjacks == 0) {
+                tryBuildLumberJack();
+            }
+        }
+
+        if (shouldBuildLumberJack()) {
+            tryBuildLumberJack();
+        }
+
+        if (shouldBuildSoldier()) {
             tryBuildSolider();
         }
-        if (crampedMap()) {
-            if (!crampedLumberjack) {
-                tryBuildLumberJack();
-                crampedLumberjack = true;
-            }
-        } else {
-            if (shouldBuildScout()) {
-                tryBuildScout();
-            }
 
-            if (shouldBuildLumberJack()) {
-                tryBuildLumberJack();
-            }
-
-            if (shouldBuildSoldier()) {
-                tryBuildSolider();
-            }
-
-            if (!hasFoundBuildLocation && !rc.hasMoved()) {
-                tryMoveToValidBuildLocation();
-            }
-
-            if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && numberOfLumberjacks > 0) {
-                tryPlantTree();
-            }
-
-            if (rc.canWater()) {
-                tryWaterTree();
-            }
+        if (!hasFoundBuildLocation && !rc.hasMoved()) {
+            tryMoveToValidBuildLocation();
         }
 
+        if (hasFoundBuildLocation && builtTreeCount < TREES_TO_SPAWN && numberOfLumberjacks > 0) {
+            tryPlantTree();
+        }
+
+        if (rc.canWater()) {
+            tryWaterTree();
+        }
     }
 
     private static boolean crampedMap() throws GameActionException {
-        if (visibleNeutralTrees.length >= 5 && rc.getRoundNum() <= 150) {
+        if (visibleNeutralTrees.length >= 4 && rc.getRoundNum() <= 150) {
             return true;
         }
         return false;
-    }
-
-    private static boolean canRush() throws GameActionException {
-        Arrays.sort(enemyArchonLocations, (loc1, loc2) -> Float.compare(rc.getLocation().distanceTo(loc1), rc.getLocation().distanceTo(loc2)));
-        return rc.getLocation().distanceTo(enemyArchonLocations[0]) <= 20;
     }
 
     private static boolean tryMoveToValidBuildLocation() throws GameActionException {
@@ -105,7 +103,7 @@ class Gardener extends Base {
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
-        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 4);
+        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.SOLDIER.bodyRadius * 3);
         return rc.senseNearbyTrees(circleRadius).length == 0 && rc.onTheMap(loc, circleRadius);
     }
 
@@ -166,7 +164,7 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildLumberJack() throws GameActionException {
-        if (numberOfSoldiers < 2)  {
+        if (!isLumberJackSpawnRound()) {
             return false;
         }
 
@@ -174,9 +172,10 @@ class Gardener extends Base {
             return false;
         }
 
-        if (isLumberJackSpawnRound()) {
+        if (visibleNeutralTrees.length > 3) {
             return true;
         }
+
 
         if (numberOfScouts >= 2) {
             return true;
@@ -204,15 +203,15 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildSoldier() throws GameActionException {
-        if (isSoldierSpawnRound()) {
-            return true;
+        if (!isSoldierSpawnRound()) {
+            return false;
         }
 
-        if (numberOfSoldiers < Constants.SOLDIERS_FOR_AGGRESSION) {
-            return true;
+        if (visibleNeutralTrees.length > 5) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     static boolean tryBuildSolider() throws GameActionException {
