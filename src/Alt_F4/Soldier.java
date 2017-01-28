@@ -25,9 +25,7 @@ class Soldier extends Base {
 
                 if (!rc.hasAttacked() && targetLocation != null) {
                     tryMoveToLocation();
-                } else if(rc.hasAttacked() && targetLocation != null) {
-                    Pathing.tryMove(rc.getLocation().directionTo(targetLocation).opposite());
-                } else {
+                } else if(!rc.hasAttacked()) {
                     wander();
                     tryClearTrees();
                 }
@@ -142,7 +140,7 @@ class Soldier extends Base {
             movingDirection = Pathing.randomDirection();
         }
 
-        if (!rc.onTheMap(rc.getLocation().add(movingDirection, rc.getType().sensorRadius - 0.1F))) {
+        if (!rc.canMove(movingDirection)) {
             movingDirection = Pathing.randomDirection();
         } else {
             if (!rc.hasMoved()) {
