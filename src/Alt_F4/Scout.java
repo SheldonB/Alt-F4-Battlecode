@@ -110,14 +110,7 @@ class Scout extends Base {
     }
 
     private static MapLocation determineRushLocation() throws GameActionException {
-        MapLocation closestArchonLocation = enemyArchonLocations[0];
-        for (MapLocation loc : enemyArchonLocations) {
-            if (rc.getLocation().distanceTo(loc) < rc.getLocation().distanceTo(closestArchonLocation)) {
-                closestArchonLocation = loc;
-            }
-        }
-
-        return closestArchonLocation;
+        return Utils.closestEnemyArchonLocation();
     }
 
     private static void explore() throws GameActionException {
