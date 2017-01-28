@@ -2,14 +2,13 @@ package Alt_F4;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-
 
 public class Archon extends Base {
     private static final int GARDENERS_TO_SPAWN = 5;
 
-    private static int spawnedUnitCount = 0;
-    private static boolean shouldBuildGardenerWhenCan = false;
+    private static int spawnedGardenerCount = 0;
+    private static int lastSpawnedGardenerRound;
+    private static boolean isArchonToSpawnFirst = false;
 
     public static void run() throws GameActionException {
         System.out.println("Archon Spawned");
@@ -17,25 +16,60 @@ public class Archon extends Base {
         while (true) {
             try {
                 Base.update();
+                Utils.CheckWinConditions();
+
                 if (rc.getRoundNum() == 1) {
-                    VoteMapStrategy();
-                } else if (rc.getRoundNum() == 2) {
-                    DetermineMapStrategy();
+                    determineWhichArchonToSpawnFrom();
+                    if (isArchonToSpawnFirst) {
+                        determineStartingBuild();
+                    }
                 }
 
-                if (shouldBuildGardener() || shouldBuildGardenerWhenCan) {
+                if ((isArchonToSpawnFirst && spawnedGardenerCount == 0) || (rc.getRoundNum() > 100 && isGardenerSpawnRound())) {
                     spawnGardener();
                 }
 
                 tryMaintainDistance();
 
-                Utils.CheckWinConditions();
+                Utils.collectBullets();
                 Clock.yield();
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
     }
+
+    private static void determineWhichArchonToSpawnFrom() throws GameActionException {
+        MapLocation maxLocation = archonLocations[0];
+        for (MapLocation archonLoc : archonLocations) {
+            for (MapLocation enemyArchonsLoc : enemyArchonLocations) {
+                float fromCurrentMax = maxLocation.distanceTo(enemyArchonsLoc);
+                float distance = archonLoc.distanceTo(enemyArchonsLoc);
+
+                if (distance > fromCurrentMax) {
+                    maxLocation = archonLoc;
+                }
+            }
+        }
+
+        if (rc.canSenseLocation(maxLocation) && rc.senseRobotAtLocation(maxLocation).getID() == rc.getID()) {
+            isArchonToSpawnFirst = true;
+        }
+    }
+
+    private static void determineStartingBuild() throws GameActionException {
+        MapLocation closestArchonLocation = Utils.closestEnemyArchonLocation();
+
+        if (rc.getLocation().distanceTo(closestArchonLocation) < 40) {
+            System.out.println("Determined Soldier Rush");
+            rc.broadcast(Message.STRATEGY_CHANNEL, Message.SOLDIER_HARRASS_MESSAGE);
+        } else {
+            System.out.println("Determined Scout Rush");
+            rc.broadcast(Message.STRATEGY_CHANNEL, Message.SCOUT_HARRASS_MESSAGE);
+        }
+
+    }
+
 
     /*
     This function checks to see if the current map has a valid
@@ -52,7 +86,7 @@ public class Archon extends Base {
         return sensedTrees.length <= 1;
     }
 
-
+    /*
     private static void VoteMapStrategy() throws GameActionException {
         int[] hashedLocations = new int[numberOfArchons];
         for (int i = 0; i < numberOfArchons; i++) {
@@ -91,19 +125,20 @@ public class Archon extends Base {
         System.out.println("Archons decided to turtle");
         rc.broadcast(Message.STRATEGY_CHANNEL, Message.TURTLE_MESSAGE);
     }
+    */
 
     private static boolean isGardenerSpawnRound() {
-        return rc.getRoundNum() % 200 == 0 || rc.getRoundNum() == 1;
+        return (rc.getRoundNum() - lastSpawnedGardenerRound) > 200;
     }
 
     public static void spawnGardener() throws GameActionException {
         Direction buildDirection = Direction.getNorth();
-        buildDirection = buildDirection.rotateRightDegrees(60 * spawnedUnitCount);
+        buildDirection = buildDirection.rotateRightDegrees(60 * spawnedGardenerCount);
 
-        if (spawnedUnitCount < GARDENERS_TO_SPAWN && Base.trySpawnUnit(buildDirection, RobotType.GARDENER)) {
+        if (spawnedGardenerCount < GARDENERS_TO_SPAWN && Base.trySpawnUnit(buildDirection, RobotType.GARDENER)) {
             rc.broadcast(Message.GARDENER_COUNT_CHANNEL, rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL));
-            shouldBuildGardenerWhenCan = false;
-            spawnedUnitCount++;
+            lastSpawnedGardenerRound = rc.getRoundNum();
+            spawnedGardenerCount++;
         }
     }
 
@@ -116,16 +151,5 @@ public class Archon extends Base {
                 }
             }
         }
-    }
-
-    private static boolean shouldBuildGardener() throws GameActionException {
-        if (isGardenerSpawnRound() && numberOfGardeners < GARDENERS_TO_SPAWN) {
-            if (rc.getTeamBullets() < RobotType.GARDENER.bulletCost) {
-                shouldBuildGardenerWhenCan = true;
-            }
-            return true;
-        }
-
-        return false;
     }
 }
