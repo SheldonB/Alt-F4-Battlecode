@@ -58,6 +58,12 @@ public class Message {
     Define message constants that are to be passed into
     the message array.
      */
-    public static final int TURTLE_MESSAGE = 1;
-    public static final int SCOUT_RUSH_MESSAGE = 2;
+    public static final int SOLDIER_HARRASS_MESSAGE = 1;
+    public static final int SCOUT_HARRASS_MESSAGE = 2;
+
+
+    /*
+    Deine Packet Types;
+    */
+    public static final int TARGET_PACKET = 1;
 }
