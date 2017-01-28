@@ -7,7 +7,23 @@ import java.util.ArrayList;
 class Utils extends Base {
     public static final float PI = 3.1415927F;
 
+    static MapLocation closestEnemyArchonLocation() {
+        MapLocation closestArchonLocation = enemyArchonLocations[0];
+
+        for (MapLocation loc : enemyArchonLocations) {
+            if (rc.getLocation().distanceTo(loc) < rc.getLocation().distanceTo(closestArchonLocation)) {
+                closestArchonLocation = loc;
+            }
+        }
+
+        return closestArchonLocation;
+    }
+
     static boolean CheckWinConditions() throws GameActionException {
+        if (rc.getRoundNum() == 3000) {
+            rc.donate(rc.getTeamBullets());
+        }
+
         if (rc.getTeamBullets() / rc.getVictoryPointCost() >= GameConstants.VICTORY_POINTS_TO_WIN) {
             rc.donate(rc.getTeamBullets());
             return true;
