@@ -60,11 +60,11 @@ public class Base {
         nearbyBullets = rc.senseNearbyBullets();
 
         // Update the numbers of the units for the round.
-        numberOfTanks = rc.readBroadcast(Message.TANK_COUNT_CHANNEL);
         numberOfGardeners = rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL);
         numberOfScouts = rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL);
         numberOfLumberjacks = rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL);
         numberOfSoldiers = rc.readBroadcast(Message.SOLDIER_COUNT_CHANNEL);
+        numberOfTanks = rc.readBroadcast(Message.TANK_COUNT_CHANNEL);
 
         numberOfTrees = rc.readBroadcast(Message.TOTAL_TREE_COUNT_CHANNEL);
 
