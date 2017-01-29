@@ -24,6 +24,7 @@ public strictfp class RobotPlayer {
                     Soldier.run();
                     break;
                 case TANK:
+                    Tank.run();
                     break;
             }
         } catch (Exception e) {

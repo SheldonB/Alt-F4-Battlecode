@@ -8,6 +8,7 @@ public class Base {
     static int numberOfArchons;
     static int numberOfEnemyArchons;
 
+    static int numberOfTanks;
     static int numberOfScouts;
     static int numberOfSoldiers;
     static int numberOfGardeners;
@@ -59,6 +60,7 @@ public class Base {
         nearbyBullets = rc.senseNearbyBullets();
 
         // Update the numbers of the units for the round.
+        numberOfTanks = rc.readBroadcast(Message.TANK_COUNT_CHANNEL);
         numberOfGardeners = rc.readBroadcast(Message.GARDENER_COUNT_CHANNEL);
         numberOfScouts = rc.readBroadcast(Message.SCOUT_COUNT_CHANNEL);
         numberOfLumberjacks = rc.readBroadcast(Message.LUMBERJACK_COUNT_CHANNEL);
