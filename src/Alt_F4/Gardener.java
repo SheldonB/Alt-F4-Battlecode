@@ -204,6 +204,10 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildSoldier() throws GameActionException {
+        if (visibleEnemyUnits.length >= 1) {
+            return true;
+        }
+
         if (!isSoldierSpawnRound()) {
             return false;
         }
