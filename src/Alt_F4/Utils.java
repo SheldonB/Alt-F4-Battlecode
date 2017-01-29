@@ -1,6 +1,7 @@
 package Alt_F4;
 
 import battlecode.common.*;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -20,8 +21,9 @@ class Utils extends Base {
     }
 
     static boolean CheckWinConditions() throws GameActionException {
-        if (rc.getRoundNum() == 3000) {
+        if (rc.getRoundNum() == 2999) {
             rc.donate(rc.getTeamBullets());
+            return true;
         }
 
         if (rc.getTeamBullets() / rc.getVictoryPointCost() >= GameConstants.VICTORY_POINTS_TO_WIN) {
@@ -74,5 +76,15 @@ class Utils extends Base {
         }
 
         return computedDirections;
+    }
+
+    static boolean isBodyInRange(BodyInfo body, Direction rightRange, Direction leftRange) {
+        Direction dir = rc.getLocation().directionTo(body.getLocation());
+        if (leftRange.getAngleDegrees() >= dir.getAngleDegrees()
+                && rightRange.getAngleDegrees() <= dir.getAngleDegrees()) {
+            return true;
+        }
+
+        return false;
     }
 }
