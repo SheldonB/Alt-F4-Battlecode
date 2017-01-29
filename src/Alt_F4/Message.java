@@ -35,7 +35,7 @@ public class Message {
     public static final int LUMBERJACK_COUNT_CHANNEL = 6007;
     public static final int SOLDIER_COUNT_CHANNEL = 6008;
     public static final int SCOUT_COUNT_CHANNEL = 6009;
-    public static final int TANK_COUNT_CHANNEL = 60010;
+    public static final int TANK_COUNT_CHANNEL = 6010;
 
     public static final int LAST_KNOW_ENEMY_ARCHON_CHANNEL = 6011;
 
