@@ -66,6 +66,10 @@ class Gardener extends Base {
             tryBuildSolider();
         }
 
+        if (shouldBuildTank()) {
+            tryBuildTank();
+        }
+
         if (!hasFoundBuildLocation && !rc.hasMoved()) {
             tryMoveToValidBuildLocation();
         }
@@ -104,7 +108,7 @@ class Gardener extends Base {
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
-        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.SOLDIER.bodyRadius * 3);
+        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.TANK.bodyRadius * 2);
         return rc.senseNearbyTrees(circleRadius).length == 0 && rc.onTheMap(loc, circleRadius) || turnsTriedToBuild >= SEARCHING_TURN_LIMIT;
     }
 
@@ -203,7 +207,7 @@ class Gardener extends Base {
         return false;
     }
 
-    static boolean shouldBuildSoldier() throws GameActionException {
+    private static boolean shouldBuildSoldier() throws GameActionException {
         if (visibleEnemyUnits.length >= 1) {
             return true;
         }
@@ -219,7 +223,7 @@ class Gardener extends Base {
         return true;
     }
 
-    static boolean tryBuildSolider() throws GameActionException {
+    private static boolean tryBuildSolider() throws GameActionException {
         List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
 
         for (Direction dir : directions) {
@@ -233,11 +237,36 @@ class Gardener extends Base {
         return false;
     }
 
-    static boolean isLumberJackSpawnRound() {
+    private static boolean shouldBuildTank() throws GameActionException {
+        if (rc.getRoundNum() < 750) {
+            return false;
+        }
+
+        if (numberOfTanks >= 3) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean tryBuildTank() throws GameActionException {
+        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
+
+        for (Direction dir : directions) {
+            if (rc.canBuildRobot(RobotType.TANK, dir)) {
+                rc.buildRobot(RobotType.TANK, dir);
+                rc.broadcast(Message.TANK_COUNT_CHANNEL, numberOfTanks + 1);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isLumberJackSpawnRound() {
         return (rc.getRoundNum() - lastSpawnedLumberjackRound) >= Constants.LUMBERJACK_SPAWN_OFFSET;
     }
 
-    static boolean isSoldierSpawnRound() {
+    private static boolean isSoldierSpawnRound() {
         return (rc.getRoundNum() - lastSpawnedSoldierRound) >= Constants.SOLDIER_SPAWN_OFFSET;
     }
 }
