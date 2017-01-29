@@ -11,15 +11,15 @@ class Gardener extends Base {
     private static Direction movingDirection;
 
     private static final int TREES_TO_SPAWN = 5;
+    private static final int SEARCHING_TURN_LIMIT = 400;
 
     private static int builtTreeCount;
-
-    private static boolean hasFoundBuildLocation = false;
-
-    private static boolean crampedLumberjack = false;
+    private static int turnsTriedToBuild;
 
     private static int lastSpawnedLumberjackRound;
     private static int lastSpawnedSoldierRound;
+
+    private static boolean hasFoundBuildLocation = false;
 
     private static List<Tree> builtTrees = new ArrayList<>();
 
@@ -96,6 +96,7 @@ class Gardener extends Base {
                 movingDirection = Pathing.randomDirection();
             }
 
+            turnsTriedToBuild++;
             return Pathing.tryMove(movingDirection);
         }
         hasFoundBuildLocation = true;
@@ -104,7 +105,7 @@ class Gardener extends Base {
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
         float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.SOLDIER.bodyRadius * 3);
-        return rc.senseNearbyTrees(circleRadius).length == 0 && rc.onTheMap(loc, circleRadius);
+        return rc.senseNearbyTrees(circleRadius).length == 0 && rc.onTheMap(loc, circleRadius) || turnsTriedToBuild >= SEARCHING_TURN_LIMIT;
     }
 
     private static boolean tryPlantTree() throws GameActionException {
