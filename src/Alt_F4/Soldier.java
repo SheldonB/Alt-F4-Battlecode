@@ -118,21 +118,25 @@ class Soldier extends Base {
     }
 
     private static boolean shouldFirePentadShot(MapLocation loc) {
-        int robotsInPentadRange = 0;
+        int bodiesInPentadRange = 0;
 
         Direction firingDirection = rc.getLocation().directionTo(loc);
         Direction directionRangeRight = firingDirection.rotateRightDegrees(30);
         Direction directionRangeLeft = firingDirection.rotateLeftDegrees(30);
 
         for (RobotInfo robot : visibleEnemyUnits) {
-            Direction robotDirection = rc.getLocation().directionTo(robot.getLocation());
-            if (directionRangeLeft.getAngleDegrees() >= robotDirection.getAngleDegrees()
-                    && directionRangeRight.getAngleDegrees() <= robotDirection.getAngleDegrees()) {
-                robotsInPentadRange++;
+            if (Utils.isBodyInRange(robot, directionRangeRight, directionRangeLeft)) {
+                bodiesInPentadRange++;
             }
         }
 
-        return robotsInPentadRange > 1;
+        for (TreeInfo tree : visibleEnemyTrees) {
+            if (Utils.isBodyInRange(tree, directionRangeRight, directionRangeLeft)) {
+                bodiesInPentadRange++;
+            }
+        }
+
+        return bodiesInPentadRange > 1;
     }
 
     private static void wander() throws GameActionException {
