@@ -135,7 +135,7 @@ class Soldier extends Base {
             return true;
         }
 
-        if (rc.canFireSingleShot()) {
+        if (rc.canFireSingleShot() && rc.getTeamBullets() > 100) {
             rc.fireSingleShot(firingDirection);
             return true;
         }
@@ -144,6 +144,10 @@ class Soldier extends Base {
     }
 
     private static boolean tryClearTrees() throws GameActionException {
+        if (rc.getTeamBullets() < 200) {
+            return false;
+        }
+
         TreeInfo[] treesInStrideRadius = rc.senseNearbyTrees(rc.getLocation(), rc.getType().bodyRadius + 1, Team.NEUTRAL);
         if (treesInStrideRadius.length >= 1) {
             if (rc.canFirePentadShot()) {
