@@ -12,34 +12,6 @@ class Pathing extends Base {
         return new Direction((float)Math.random() * 2 * (float)Math.PI);
     }
 
-    static boolean tryRandomSmartMove() throws GameActionException {
-        while(!rc.hasMoved()) {
-            Direction dir = randomDirection();
-            MapLocation newLoc = rc.getLocation().add(dir);
-
-            boolean hasMovedThereBefore = false;
-            for (MapLocation loc : previousLocations) {
-                if (newLoc.distanceTo(loc) < rc.getType().strideRadius * rc.getType().strideRadius) {
-                    hasMovedThereBefore = true;
-                    break;
-                }
-            }
-
-            if (!hasMovedThereBefore) {
-                if (!rc.hasMoved() && rc.canMove(newLoc)) {
-                    rc.move(newLoc);
-                    previousLocations.add(newLoc);
-
-                    if (previousLocations.size() > 10) {
-                        previousLocations.remove(0);
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     /**
      * Attempts to move in a given direction, while avoiding small obstacles directly in the path.
      *
@@ -69,32 +41,52 @@ class Pathing extends Base {
             return false;
         }
 
-        // First, try intended direction
-        if (rc.canMove(dir)) {
-            rc.move(dir, distance);
+        if (rc.canMove(dir) && !hasBeenToThisLocationRecently(rc.getLocation().add(dir, distance))) {
+            doMove(dir, distance);
             return true;
         }
 
-        // Now try a bunch of similar angles
         int currentCheck = 1;
 
         while(currentCheck <= checksPerSide) {
-            // Try the offset of the left side
-            if(rc.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck), distance);
+            Direction leftOffset = dir.rotateLeftDegrees(degreeOffset * currentCheck);
+            Direction rightOffset = dir.rotateRightDegrees(degreeOffset * currentCheck);
+
+            if(rc.canMove(leftOffset) && !hasBeenToThisLocationRecently(rc.getLocation().add(leftOffset, distance))) {
+                doMove(leftOffset, distance);
                 return true;
             }
-            // Try the offset on the right side
-            if(rc.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck), distance);
+
+            if(rc.canMove(rightOffset) && !hasBeenToThisLocationRecently(rc.getLocation().add(leftOffset, distance))) {
+                doMove(rightOffset, distance);
                 return true;
             }
-            // No move performed, try slightly further
+
             currentCheck++;
         }
 
-        // A move never happened, so return false.
         return false;
+    }
+
+    private static void doMove(Direction dir, float distance) throws GameActionException {
+        rc.move(dir, distance);
+        previousLocations.add(rc.getLocation());
+        truncatePreviousLocations();
+    }
+
+    private static boolean hasBeenToThisLocationRecently(MapLocation loc) {
+        for (MapLocation previousLoc : previousLocations) {
+            if (previousLoc.distanceTo(loc) <= 0.10) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void truncatePreviousLocations() {
+        if (previousLocations.size() > 100) {
+            previousLocations.remove(0);
+        }
     }
 
     private static boolean willCollideWithMe(BulletInfo bullet) {

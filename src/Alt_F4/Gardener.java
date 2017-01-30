@@ -170,6 +170,11 @@ class Gardener extends Base {
     }
 
     static boolean shouldBuildLumberJack() throws GameActionException {
+
+        if (rc.getRoundNum() > 800) {
+            return false;
+        }
+
         if (!isLumberJackSpawnRound()) {
             return false;
         }
