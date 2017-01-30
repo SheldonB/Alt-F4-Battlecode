@@ -15,27 +15,38 @@ class Soldier extends Base {
             try {
                 Utils.CheckWinConditions();
                 Base.update();
-
-                if (!rc.hasMoved() && nearbyBullets.length > 0) {
-                    Pathing.tryDodgeBullet();
+                if (rc.getRoundNum() % 16 == 0) {
+                    Broadcasting.broadcastVisibleEnemyLocations();
                 }
-
-                tryDetermineLocation();
-                tryFireOnEnemy();
-
-                if (!rc.hasAttacked() && targetLocation != null) {
-                    tryMoveToLocation();
-                } else if(!rc.hasAttacked()) {
-                    wander();
-                    tryClearTrees();
-                }
-
-                Utils.collectBullets();
+                runRound();
                 Clock.yield();
             } catch (Exception e) {
                 System.out.println(e);
             }
         }
+    }
+
+    private static void runRound() throws GameActionException {
+        if (!rc.hasMoved() && nearbyBullets.length > 0) {
+            Pathing.tryDodgeBullet();
+        }
+
+        tryDetermineLocation();
+        if (targetLocation != null) {
+            System.out.println(targetLocation);
+            rc.setIndicatorLine(rc.getLocation(), targetLocation, 255, 0, 0);
+        }
+        tryFireOnEnemy();
+
+        if (!rc.hasAttacked() && targetLocation != null) {
+            tryMoveToLocation();
+            tryClearTrees();
+        } else if(!rc.hasAttacked()) {
+            wander();
+            tryClearTrees();
+        }
+
+        Utils.collectBullets();
     }
 
     private static boolean tryDetermineLocation() throws GameActionException {
@@ -49,8 +60,40 @@ class Soldier extends Base {
             return false;
         }
 
+        if (tryReadFromCommonBroadcast()) {
+            return true;
+        }
         targetLocation = null;
         return false;
+    }
+
+    private static boolean tryReadFromCommonBroadcast() throws GameActionException {
+        Packet packet = Broadcasting.tryReadPacket(Message.SOLDIER_GENERAL_CHANNEL_START);
+        if (packet != null) {
+            if (rc.canSenseLocation(packet.getLocation()) && visibleEnemyUnits.length == 0) {
+                tryUpdateCommonBroadcast();
+                return false;
+            } else {
+                targetLocation = packet.getLocation();
+                return true;
+            }
+        } else {
+            tryUpdateCommonBroadcast();
+            return false;
+        }
+
+    }
+
+    private static void tryUpdateCommonBroadcast() throws GameActionException {
+        int startChannel = Message.ENEMY_LOCATION_CHANNEL_START;
+        int endChannel = Message.ENEMY_LOCATION_CHANNEL_END;
+        for (int i = startChannel; i <= endChannel; i += Packet.PACKET_SIZE) {
+            Packet packet = Broadcasting.tryReadPacket(startChannel);
+            if (packet != null && !rc.canSenseLocation(packet.getLocation()) && packet.getLocation().x != 0F && packet.getLocation().y != 0F) {
+                Broadcasting.tryBroadcastPacket(packet, Message.SOLDIER_GENERAL_CHANNEL_START);
+                return;
+            }
+        }
     }
 
     private static boolean tryFireOnEnemy() throws GameActionException {
@@ -102,7 +145,7 @@ class Soldier extends Base {
 
     private static boolean tryClearTrees() throws GameActionException {
         TreeInfo[] treesInStrideRadius = rc.senseNearbyTrees(rc.getLocation(), rc.getType().bodyRadius + 1, Team.NEUTRAL);
-        if (treesInStrideRadius.length >= 3) {
+        if (treesInStrideRadius.length >= 1) {
             if (rc.canFirePentadShot()) {
                 Direction dir = rc.getLocation().directionTo(treesInStrideRadius[0].getLocation());
                 rc.firePentadShot(dir);

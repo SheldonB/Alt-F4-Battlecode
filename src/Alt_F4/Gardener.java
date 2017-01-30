@@ -11,7 +11,7 @@ class Gardener extends Base {
     private static Direction movingDirection;
 
     private static final int TREES_TO_SPAWN = 5;
-    private static final int SEARCHING_TURN_LIMIT = 400;
+    private static final int SEARCHING_TURN_LIMIT = 300;
 
     private static int builtTreeCount;
     private static int turnsTriedToBuild;
@@ -108,8 +108,9 @@ class Gardener extends Base {
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
-        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.TANK.bodyRadius * 2);
-        return rc.senseNearbyTrees(circleRadius).length == 0 && rc.onTheMap(loc, circleRadius) || turnsTriedToBuild >= SEARCHING_TURN_LIMIT;
+        float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.SOLDIER.bodyRadius * 2.5F);
+
+        return (rc.senseNearbyTrees(circleRadius).length == 0  && rc.onTheMap(loc, circleRadius)) || turnsTriedToBuild >= SEARCHING_TURN_LIMIT;
     }
 
     private static boolean tryPlantTree() throws GameActionException {

@@ -113,4 +113,16 @@ public class Broadcasting extends Base {
 
     }
 
+    static Packet tryReadPacket(int startChannel) throws GameActionException {
+        int packetType = rc.readBroadcast(startChannel);
+        if (packetType == 0) {
+            return null;
+        }
+        int robotId = rc.readBroadcast(startChannel + 1);
+        int roundSent = rc.readBroadcast(startChannel + 2);
+        float xLoc = rc.readBroadcastFloat(startChannel + 3);
+        float yLoc = rc.readBroadcastFloat(startChannel + 4);
+        MapLocation loc = new MapLocation(xLoc, yLoc);
+        return new Packet(packetType, robotId, loc, roundSent);
+    }
 }

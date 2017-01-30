@@ -7,6 +7,9 @@ class Lumberjack extends Base {
         while (true) {
             try {
                 Base.update();
+                if (rc.getRoundNum() % 17 == 0) {
+                    Broadcasting.broadcastVisibleEnemyLocations();
+                }
                 clearTrees();
                 Utils.collectBullets();
                 Clock.yield();
@@ -53,6 +56,7 @@ class Lumberjack extends Base {
         MapLocation targetLocation = Utils.mapLocationFromInt(targetLoc);
         Direction toTarget = rc.getLocation().directionTo(targetLocation);
         Pathing.tryMove(toTarget);
+        rc.setIndicatorLine(rc.getLocation(), targetLocation, 0, 0, 0);         rc.setIndicatorDot(targetLocation, 120, 0, 120);
 
         if (targetLocation != null) {
             if (rc.getLocation().distanceTo(targetLocation) <= rc.getType().sensorRadius && visibleEnemyUnits.length == 0) {

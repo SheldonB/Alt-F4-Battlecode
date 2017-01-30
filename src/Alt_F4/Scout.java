@@ -18,6 +18,11 @@ class Scout extends Base {
         while (true) {
             try {
                 Base.update();
+
+                if (rc.getRoundNum() % 15 == 0) {
+                    Broadcasting.broadcastVisibleEnemyLocations();
+                }
+
                 runRound();
                 Clock.yield();
             } catch (Exception e) {

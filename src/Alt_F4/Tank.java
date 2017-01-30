@@ -15,6 +15,10 @@ public class Tank extends Base {
             try {
                 Base.update();
                 Utils.CheckWinConditions();
+
+                if (rc.getRoundNum() % 18 == 0) {
+                    Broadcasting.broadcastVisibleEnemyLocations();
+                }
                 runRound();
                 Clock.yield();
             } catch (Exception e) {
