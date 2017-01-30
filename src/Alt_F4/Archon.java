@@ -17,26 +17,32 @@ public class Archon extends Base {
             try {
                 Base.update();
                 Utils.CheckWinConditions();
-
-                if (rc.getRoundNum() == 1) {
-                    determineWhichArchonToSpawnFrom();
-                    if (isArchonToSpawnFirst) {
-                        determineStartingBuild();
-                    }
+                if (rc.getRoundNum() % 5 == 0) {
+                    Broadcasting.cleanUpEnemyLocations();
                 }
-
-                if ((isArchonToSpawnFirst && spawnedGardenerCount == 0) || (rc.getRoundNum() > 100 && isGardenerSpawnRound())) {
-                    spawnGardener();
-                }
-
-                tryMaintainDistance();
-
-                Utils.collectBullets();
+                runRound();
                 Clock.yield();
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
+    }
+
+    private static void runRound() throws GameActionException {
+        if (rc.getRoundNum() == 1) {
+            determineWhichArchonToSpawnFrom();
+            if (isArchonToSpawnFirst) {
+                determineStartingBuild();
+            }
+        }
+
+        if ((isArchonToSpawnFirst && spawnedGardenerCount == 0) || (rc.getRoundNum() > 100 && isGardenerSpawnRound())) {
+            spawnGardener();
+        }
+
+        tryMaintainDistance();
+
+        Utils.collectBullets();
     }
 
     private static void determineWhichArchonToSpawnFrom() throws GameActionException {
