@@ -17,7 +17,9 @@ public class Broadcasting extends Base {
     static boolean tryBroadcastPacket(Packet packet, int startingChannel) throws GameActionException {
         rc.broadcast(startingChannel, packet.getPacketType());
         rc.broadcast(startingChannel + 1, packet.getRobotId());
-        rc.broadcast(startingChannel + 1, packet.getLocation());
+        rc.broadcast(startingChannel + 2, packet.getRoundSent());
+        rc.broadcastFloat(startingChannel + 3, packet.getXCord());
+        rc.broadcastFloat(startingChannel + 4, packet.getYCord());
         return true;
     }
 
@@ -25,6 +27,10 @@ public class Broadcasting extends Base {
         int channelStart = getRobotChannelStart(rc.senseRobot(rc.getID()));
         int channelEnd = getRobotChannelEnd(rc.senseRobot(rc.getID()));
 
+        return findEmptyChannel(channelStart, channelEnd);
+    }
+
+    static int findEmptyChannel(int channelStart, int channelEnd) throws GameActionException {
         for (int currChannel = channelStart; currChannel <= channelEnd; currChannel += Packet.PACKET_SIZE) {
             int data = rc.readBroadcast(currChannel);
             if (data == 0) {
@@ -34,6 +40,7 @@ public class Broadcasting extends Base {
 
         return GameConstants.BROADCAST_MAX_CHANNELS;
     }
+
 
     private static int getRobotChannelStart(RobotInfo robot) {
         switch (robot.getType()) {
@@ -69,6 +76,41 @@ public class Broadcasting extends Base {
                 return Message.TANK_GENERAL_CHANNEL_END;
         }
         return 0;
+    }
+
+    static void broadcastVisibleEnemyLocations() throws GameActionException {
+        int channelStart = Message.ENEMY_LOCATION_CHANNEL_START;
+        int channelEnd = Message.ENEMY_LOCATION_CHANNEL_END;
+
+        for (RobotInfo robot : visibleEnemyUnits) {
+            int emptyChannel = findEmptyChannel(channelStart, channelEnd);
+            if (emptyChannel == GameConstants.BROADCAST_MAX_CHANNELS) {
+               return;
+            }
+            System.out.println("Broadcasting at location " + emptyChannel);
+            Packet packet = new Packet(Message.TARGET_PACKET, robot.getID(), robot.getLocation(), rc.getRoundNum());
+            tryBroadcastPacket(packet, emptyChannel);
+        }
+    }
+
+    static void cleanUpEnemyLocations() throws GameActionException {
+        int channelStart = Message.ENEMY_LOCATION_CHANNEL_START;
+        int channelEnd = Message.ENEMY_LOCATION_CHANNEL_END;
+
+        for (int i = channelStart; i <= channelEnd; i += Packet.PACKET_SIZE) {
+            int packetType = rc.readBroadcast(i);
+            int roundSent = rc.readBroadcast(i + 2);
+
+            if (packetType == Message.TARGET_PACKET && rc.getRoundNum() - roundSent > 30) {
+                System.out.println("Cleaning up packet at " + i + " from round " + roundSent);
+                rc.broadcast(i, 0);
+                rc.broadcast(i + 1, 0);
+                rc.broadcast(i + 2, 0);
+                rc.broadcast(i + 3, 0);
+                rc.broadcast(i + 4, 0);
+            }
+        }
+
     }
 
 }
