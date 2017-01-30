@@ -78,9 +78,7 @@ class Lumberjack extends Base {
     private static void moveTowardNeutralTrees() throws GameActionException {
         float distanceToTree = rc.getLocation().distanceTo(visibleNeutralTrees[0].getLocation());
         if (visibleNeutralTrees[0].getRadius() + GameConstants.LUMBERJACK_STRIKE_RADIUS > distanceToTree) {
-            if (rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam()).length == 0) {
-                rc.strike();
-            }
+            rc.strike();
         } else {
             Direction toTree = rc.getLocation().directionTo(visibleNeutralTrees[0].getLocation());
             Pathing.tryMove(toTree);
