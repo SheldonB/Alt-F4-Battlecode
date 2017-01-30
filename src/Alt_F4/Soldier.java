@@ -40,10 +40,10 @@ class Soldier extends Base {
 
         if (!rc.hasAttacked() && targetLocation != null) {
             tryMoveToLocation();
-            tryClearTrees();
+            //tryClearTrees();
         } else if(!rc.hasAttacked()) {
             wander();
-            tryClearTrees();
+            //tryClearTrees();
         }
 
         Utils.collectBullets();
@@ -132,6 +132,11 @@ class Soldier extends Base {
 
         if (rc.canFirePentadShot() && shouldFirePentadShot(targetLocation)) {
             rc.firePentadShot(firingDirection);
+            return true;
+        }
+
+        if (rc.canFireTriadShot() && rc.getTeamBullets() > 200) {
+            rc.fireTriadShot(firingDirection);
             return true;
         }
 
