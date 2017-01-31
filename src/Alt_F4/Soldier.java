@@ -4,9 +4,7 @@ import battlecode.common.*;
 
 class Soldier extends Base {
     private static Direction movingDirection;
-
     private static MapLocation targetLocation;
-
 
     static void run() throws GameActionException {
         System.out.println("Soldier has spawned.");
@@ -21,10 +19,7 @@ class Soldier extends Base {
                 runRound();
                 Clock.yield();
             } catch (Exception e) {
-                System.out.println(e.getMessage());
-                for (StackTraceElement st : e.getStackTrace()) {
-                    System.out.println(st.toString());
-                }
+                System.out.println(e);
             }
         }
     }
@@ -38,8 +33,9 @@ class Soldier extends Base {
         if (targetLocation != null) {
             rc.setIndicatorLine(rc.getLocation(), targetLocation, 255, 0, 0);
         }
-
-        tryFireOnEnemy();
+        if (visibleEnemyUnits.length > 0) {
+            getSectorToFireInto();
+        }
 
         if (!rc.hasAttacked() && targetLocation != null) {
             tryMoveToLocation();
@@ -107,6 +103,38 @@ class Soldier extends Base {
         }
 
         return false;
+    }
+
+    private static void getSectorToFireInto() throws GameActionException {
+        int[] sectorCount = new int[4];
+        float[] directions = new float[4];
+
+        for (RobotInfo robot : visibleEnemyUnits) {
+            if (Utils.isBodyInRange(robot, new Direction(-1 * Utils.PI / 2), new Direction(0))) {
+                sectorCount[0]++;
+                directions[0] += rc.getLocation().directionTo(robot.getLocation()).radians;
+            } else if (Utils.isBodyInRange(robot, new Direction(Utils.PI),  new Direction(-1 * Utils.PI / 2))) {
+                sectorCount[1]++;
+                directions[1] += rc.getLocation().directionTo(robot.getLocation()).radians;
+            } else if (Utils.isBodyInRange(robot, new Direction(Utils.PI / 2), new Direction(Utils.PI))) {
+                sectorCount[2]++;
+                directions[2] += rc.getLocation().directionTo(robot.getLocation()).radians;
+            } else if (Utils.isBodyInRange(robot, new Direction(0), new Direction(Utils.PI / 2))) {
+                sectorCount[3]++;
+                directions[3] += rc.getLocation().directionTo(robot.getLocation()).radians;
+            }
+        }
+
+        int maxIndex = 0;
+        for (int i = 0; i < 4; i++) {
+            if (sectorCount[i] > sectorCount[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+
+        directions[maxIndex] /= sectorCount[maxIndex];
+        MapLocation loc = rc.getLocation().add(new Direction(directions[maxIndex]), rc.getType().bodyRadius);
+        tryFireOnTarget(loc);
     }
 
     private static boolean tryMoveToLocation() throws GameActionException {
