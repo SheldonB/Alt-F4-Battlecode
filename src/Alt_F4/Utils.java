@@ -80,9 +80,17 @@ class Utils extends Base {
 
     static boolean isBodyInRange(BodyInfo body, Direction rightRange, Direction leftRange) {
         Direction dir = rc.getLocation().directionTo(body.getLocation());
-        if (leftRange.getAngleDegrees() >= dir.getAngleDegrees()
-                && rightRange.getAngleDegrees() <= dir.getAngleDegrees()) {
-            return true;
+
+        if (leftRange.getAngleDegrees() != -90F && rightRange.getAngleDegrees() != 180F) {
+            if (leftRange.getAngleDegrees() >= dir.getAngleDegrees()
+                    && rightRange.getAngleDegrees() <= dir.getAngleDegrees()) {
+                return true;
+            }
+        } else {
+            if (dir.getAngleDegrees() <= leftRange.getAngleDegrees()
+                    && dir.getAngleDegrees() <= rightRange.getAngleDegrees()) {
+                return true;
+            }
         }
 
         return false;
