@@ -21,7 +21,10 @@ class Soldier extends Base {
                 runRound();
                 Clock.yield();
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println(e.getMessage());
+                for (StackTraceElement st : e.getStackTrace()) {
+                    System.out.println(st.toString());
+                }
             }
         }
     }
@@ -33,9 +36,9 @@ class Soldier extends Base {
 
         tryDetermineLocation();
         if (targetLocation != null) {
-            System.out.println(targetLocation);
             rc.setIndicatorLine(rc.getLocation(), targetLocation, 255, 0, 0);
         }
+
         tryFireOnEnemy();
 
         if (!rc.hasAttacked() && targetLocation != null) {
@@ -107,7 +110,7 @@ class Soldier extends Base {
     }
 
     private static boolean tryMoveToLocation() throws GameActionException {
-        if (rc.getLocation().distanceTo(targetLocation) >= rc.getType().sensorRadius - 1) {
+        if (rc.getLocation().distanceTo(targetLocation) >= rc.getType().sensorRadius) {
             return Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
         }
         return false;
@@ -205,4 +208,3 @@ class Soldier extends Base {
         }
     }
 }
-

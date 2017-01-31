@@ -18,10 +18,13 @@ class Gardener extends Base {
 
     private static int lastSpawnedLumberjackRound;
     private static int lastSpawnedSoldierRound;
+    private static int lastSpawnedTankRound;
 
     private static boolean hasFoundBuildLocation = false;
+    private static Direction spawnDirection;
 
     private static List<Tree> builtTrees = new ArrayList<>();
+    private static List<Direction> buildDirections = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
 
     static void run() throws GameActionException {
         System.out.println("Gardener spawned");
@@ -49,9 +52,10 @@ class Gardener extends Base {
                 tryBuildLumberJack();
             }
 
-            if (initialBuild == Message.SCOUT_HARRASS_MESSAGE && numberOfScouts < 2) {
-                tryBuildScout();
-            } else if (initialBuild == Message.SOLDIER_HARRASS_MESSAGE && numberOfSoldiers < 2) {
+            //if (initialBuild == Message.SCOUT_HARRASS_MESSAGE && numberOfScouts < 2) {
+            //    tryBuildScout();
+            //} else if (initialBuild == Message.SOLDIER_HARRASS_MESSAGE && numberOfSoldiers < 2) {
+            if (numberOfSoldiers < 2) {
                 tryBuildSolider();
             }  else if (numberOfLumberjacks == 0) {
                 tryBuildLumberJack();
@@ -104,19 +108,27 @@ class Gardener extends Base {
             return Pathing.tryMove(movingDirection);
         }
         hasFoundBuildLocation = true;
+        chooseDirectionToSpawnUnits();
         return false;
+    }
+
+    private static void chooseDirectionToSpawnUnits() throws GameActionException {
+        for (Direction dir : buildDirections) {
+            MapLocation loc = rc.getLocation().add(dir, rc.getType().bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET);
+            if (!rc.isLocationOccupiedByTree(loc)) {
+                spawnDirection = dir;
+            }
+        }
     }
 
     private static boolean isValidBuildLocation(MapLocation loc) throws GameActionException {
         float circleRadius = rc.getType().bodyRadius + (GameConstants.BULLET_TREE_RADIUS * 2) + (RobotType.SOLDIER.bodyRadius * 2.5F);
-
-        return (rc.senseNearbyTrees(circleRadius).length == 0  && rc.onTheMap(loc, circleRadius)) || turnsTriedToBuild >= SEARCHING_TURN_LIMIT;
+        return (rc.senseNearbyTrees(circleRadius, rc.getTeam()).length == 0 && rc.onTheMap(rc.getLocation(), circleRadius)) || turnsTriedToBuild >= SEARCHING_TURN_LIMIT;
     }
 
     private static boolean tryPlantTree() throws GameActionException {
-        List<Direction> directions = Utils.computeDirections(Direction.getEast(), Utils.PI / 3);
-        for (Direction dir : directions) {
-            if (tryPlantTree(dir)) {
+        for (Direction dir : buildDirections) {
+            if (dir != spawnDirection && tryPlantTree(dir)) {
                 return true;
             }
         }
@@ -244,11 +256,11 @@ class Gardener extends Base {
     }
 
     private static boolean shouldBuildTank() throws GameActionException {
-        if (rc.getRoundNum() < 750) {
+        if (rc.getRoundNum() < 750 && !isTankSpawnRound()) {
             return false;
         }
 
-        if (numberOfTanks >= 3) {
+        if (numberOfTanks >= 10) {
             return false;
         }
 
@@ -262,6 +274,7 @@ class Gardener extends Base {
             if (rc.canBuildRobot(RobotType.TANK, dir)) {
                 rc.buildRobot(RobotType.TANK, dir);
                 rc.broadcast(Message.TANK_COUNT_CHANNEL, numberOfTanks + 1);
+                lastSpawnedTankRound = rc.getRoundNum();
                 return true;
             }
         }
@@ -274,5 +287,9 @@ class Gardener extends Base {
 
     private static boolean isSoldierSpawnRound() {
         return (rc.getRoundNum() - lastSpawnedSoldierRound) >= Constants.SOLDIER_SPAWN_OFFSET;
+    }
+
+    private static boolean isTankSpawnRound() {
+        return (rc.getRoundLimit() - lastSpawnedTankRound) >= Constants.TANK_SPAWN_OFFSET;
     }
 }

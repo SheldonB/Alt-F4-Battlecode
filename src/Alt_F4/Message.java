@@ -63,4 +63,5 @@ public class Message {
     Deine Packet Types;
     */
     public static final int TARGET_PACKET = 1;
+    public static final int DESTROY_TREE_PACKET = 2;
 }

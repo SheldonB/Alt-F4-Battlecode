@@ -13,7 +13,7 @@ class Debug extends Base {
         debug_drawCircle(45, rc.getType().strideRadius, 0, 0, 255);
     }
 
-    private static void debug_drawCircle(int degreeOffset, float radius, int red, int green, int blue) {
+    static void debug_drawCircle(int degreeOffset, float radius, int red, int green, int blue) {
         Direction dir = Direction.getEast();
         float currentDegrees = dir.getAngleDegrees();
 

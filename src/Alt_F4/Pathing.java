@@ -41,7 +41,7 @@ class Pathing extends Base {
             return false;
         }
 
-        if (rc.canMove(dir) && !hasBeenToThisLocationRecently(rc.getLocation().add(dir, distance))) {
+        if (rc.canMove(dir, distance) && !hasBeenToThisLocationRecently(rc.getLocation().add(dir, distance))) {
             doMove(dir, distance);
             return true;
         }
@@ -52,12 +52,12 @@ class Pathing extends Base {
             Direction leftOffset = dir.rotateLeftDegrees(degreeOffset * currentCheck);
             Direction rightOffset = dir.rotateRightDegrees(degreeOffset * currentCheck);
 
-            if(rc.canMove(leftOffset) && !hasBeenToThisLocationRecently(rc.getLocation().add(leftOffset, distance))) {
+            if(rc.canMove(leftOffset, distance) && !hasBeenToThisLocationRecently(rc.getLocation().add(leftOffset, distance))) {
                 doMove(leftOffset, distance);
                 return true;
             }
 
-            if(rc.canMove(rightOffset) && !hasBeenToThisLocationRecently(rc.getLocation().add(leftOffset, distance))) {
+            if(rc.canMove(rightOffset, distance) && !hasBeenToThisLocationRecently(rc.getLocation().add(rightOffset, distance))) {
                 doMove(rightOffset, distance);
                 return true;
             }
@@ -69,9 +69,11 @@ class Pathing extends Base {
     }
 
     private static void doMove(Direction dir, float distance) throws GameActionException {
-        rc.move(dir, distance);
-        previousLocations.add(rc.getLocation());
-        truncatePreviousLocations();
+        if (rc.canMove(dir, distance)) {
+            rc.move(dir, distance);
+            previousLocations.add(rc.getLocation());
+            truncatePreviousLocations();
+        }
     }
 
     private static boolean hasBeenToThisLocationRecently(MapLocation loc) {

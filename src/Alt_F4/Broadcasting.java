@@ -87,7 +87,6 @@ public class Broadcasting extends Base {
             if (emptyChannel == GameConstants.BROADCAST_MAX_CHANNELS) {
                return;
             }
-            System.out.println("Broadcasting at location " + emptyChannel);
             Packet packet = new Packet(Message.TARGET_PACKET, robot.getID(), robot.getLocation(), rc.getRoundNum());
             tryBroadcastPacket(packet, emptyChannel);
         }
@@ -102,15 +101,18 @@ public class Broadcasting extends Base {
             int roundSent = rc.readBroadcast(i + 2);
 
             if (packetType == Message.TARGET_PACKET && rc.getRoundNum() - roundSent > 30) {
-                System.out.println("Cleaning up packet at " + i + " from round " + roundSent);
-                rc.broadcast(i, 0);
-                rc.broadcast(i + 1, 0);
-                rc.broadcast(i + 2, 0);
-                rc.broadcast(i + 3, 0);
-                rc.broadcast(i + 4, 0);
+                clearChannel(i);
             }
         }
 
+    }
+
+    static void clearChannel(int channel) throws GameActionException {
+        rc.broadcast(channel, 0);
+        rc.broadcast(channel + 1, 0);
+        rc.broadcast(channel + 2, 0);
+        rc.broadcast(channel + 3, 0);
+        rc.broadcast(channel + 4, 0);
     }
 
     static Packet tryReadPacket(int startChannel) throws GameActionException {
