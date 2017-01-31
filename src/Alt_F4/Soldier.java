@@ -110,7 +110,7 @@ class Soldier extends Base {
     }
 
     private static boolean tryMoveToLocation() throws GameActionException {
-        if (rc.getLocation().distanceTo(targetLocation) >= rc.getType().sensorRadius) {
+        if (rc.getLocation().distanceTo(targetLocation) >= rc.getType().sensorRadius - 2) {
             return Pathing.tryMove(rc.getLocation().directionTo(targetLocation));
         }
         return false;
